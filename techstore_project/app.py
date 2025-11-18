@@ -1,4 +1,5 @@
 from __future__ import annotations
+from config.db_config import get_connection
 
 import json
 import os
@@ -24,7 +25,7 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 # Roles (IDs en tabla ROLES)
 ROLE_ADMIN_ID = 1       # Administrador
 ROLE_PARAMETRICO_ID = 2 # Paramétrico
-ROLE_ESPORADICO_ID = 3  # Esporádico (si lo creas en BD más adelante)
+ROLE_ESPORADICO_ID = 3  # Esporádico
 
 
 @dataclass
@@ -42,14 +43,195 @@ AUTH_SERVICE = AuthService()
 VENTA_SERVICE = VentaService()
 REPORTE_SERVICE = ReporteService()
 
+# ---------------------------------------------------------------------------
+# Helpers de base de datos (solo lecturas simples)
+# ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# Utilidades para plantillas y recursos estáticos
-# ---------------------------------------------------------------------------
+def db_fetch_all(sql: str, params: Optional[Dict] = None) -> list[dict]:
+    """
+    Ejecuta un SELECT y devuelve una lista de diccionarios.
+    Las claves del diccionario son los nombres de las columnas en minúsculas.
+    """
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, params or {})
+        cols = [c[0].lower() for c in cur.description]
+        rows = []
+        for row in cur:
+            rows.append(dict(zip(cols, row)))
+        cur.close()
+        return rows
+    finally:
+        conn.close()
+
+
+def build_html_table(headers: list[str], fields: list[str], rows: list[dict]) -> str:
+    """
+    Construye una tabla HTML a partir de una lista de diccionarios.
+    """
+    html = []
+    html.append('<div class="ts-table-wrapper">')
+    html.append('<table class="ts-table">')
+    html.append('<thead><tr>')
+    for h in headers:
+        html.append(f'<th>{h}</th>')
+    html.append('</tr></thead><tbody>')
+
+    if not rows:
+        html.append(
+            f'<tr><td colspan="{len(headers)}" class="ts-empty">No hay registros.</td></tr>'
+        )
+    else:
+        for row in rows:
+            html.append('<tr>')
+            for field in fields:
+                value = row.get(field)
+                if value is None:
+                    value = ""
+                html.append(f'<td>{value}</td>')
+            html.append('</tr>')
+
+    html.append('</tbody></table></div>')
+    return "".join(html)
+
+
+def build_page(title: str, body_html: str) -> str:
+    """
+    Construye una página HTML completa, sin depender de las plantillas estáticas.
+    Esto garantiza que se muestren los datos reales (ventas, bitácora, etc.).
+    """
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>{title}</title>
+    <style>
+        * {{
+            box-sizing: border-box;
+        }}
+        body {{
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                         Roboto, Helvetica, Arial, sans-serif;
+            background: #f3f4ff;
+            color: #111827;
+        }}
+        header.ts-header {{
+            background: #4f46e5;
+            color: #ffffff;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }}
+        header.ts-header h1 {{
+            margin: 0;
+            font-size: 1.4rem;
+        }}
+        header.ts-header nav a {{
+            color: #e0e7ff;
+            margin-left: 1rem;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }}
+        header.ts-header nav a:hover {{
+            text-decoration: underline;
+        }}
+        main.ts-main {{
+            max-width: 1100px;
+            margin: 1.5rem auto 2rem;
+            padding: 1.5rem;
+            background: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }}
+        main.ts-main h2 {{
+            margin-top: 0;
+            color: #1e293b;
+        }}
+        .ts-table-wrapper {{
+            margin-top: 1rem;
+            overflow-x: auto;
+        }}
+        .ts-table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }}
+        .ts-table th,
+        .ts-table td {{
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            vertical-align: top;
+        }}
+        .ts-table th {{
+            background: #eef2ff;
+            font-weight: 600;
+            color: #374151;
+        }}
+        .ts-table tr:nth-child(even) td {{
+            background: #f9fafb;
+        }}
+        .ts-empty {{
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+        }}
+        .ts-actions a {{
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+        }}
+        .ts-actions a:hover {{
+            text-decoration: underline;
+        }}
+        ul.ts-menu-list {{
+            list-style: none;
+            padding-left: 0;
+        }}
+        ul.ts-menu-list li {{
+            margin: 0.25rem 0;
+        }}
+        ul.ts-menu-list a {{
+            color: #4f46e5;
+            text-decoration: none;
+        }}
+        ul.ts-menu-list a:hover {{
+            text-decoration: underline;
+        }}
+        .ts-subtitle {{
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }}
+    </style>
+</head>
+<body>
+<header class="ts-header">
+    <h1>TechStore</h1>
+    <nav>
+        <a href="/menu">Menú principal</a>
+        <a href="/entidades">Entidades</a>
+        <a href="/ventas">Ventas</a>
+        <a href="/reportes">Reportes</a>
+        <a href="/utilidades">Utilidades</a>
+        <a href="/logout">Cerrar sesión</a>
+    </nav>
+</header>
+<main class="ts-main">
+{body_html}
+</main>
+</body>
+</html>
+"""
+
 
 def render_template(template_name: str, context: Optional[Dict[str, str]] = None) -> str:
     """
     Carga un archivo HTML de templates/ y reemplaza {{placeholders}}.
+    Usado solo para login, menú y páginas “documentación”.
     """
     context = context or {}
     template_path = os.path.join(TEMPLATES_DIR, template_name)
@@ -129,14 +311,27 @@ class TechStoreHandler(BaseHTTPRequestHandler):
     auth_service = AuthService()
     reporte_service = ReporteService()
 
-    """
-    Servidor HTTP sin frameworks para el proyecto TechStore.
-    """
+    # -------------------------------------------------------------------
+    # Control de roles
+    # -------------------------------------------------------------------
+    def _require_session_and_level(self, allowed_levels: list[int]) -> Optional[Session]:
+        """
+        Obtiene la sesión y verifica que el nivel esté permitido.
+        Si no hay sesión -> redirige a /login
+        Si no tiene permisos -> 403
+        """
+        session = self._require_session()
+        if not session:
+            return None
 
+        if session.nivel not in allowed_levels:
+            self.send_error(403, "No tiene permisos para esta opción")
+            return None
+
+        return session
+
+    # Evitar que http.server imprima cada request en consola
     def log_message(self, format: str, *args) -> None:  # noqa: A003
-        # Comenta el pass y descomenta el print si quieres ver logs.
-        # print("%s - - [%s] %s" % (self.client_address[0],
-        #       self.log_date_time_string(), format % args))
         pass
 
     # ---------------- Sesiones ---------------- #
@@ -238,23 +433,10 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         if path in ("/menu", "/menu_principal.html"):
             return self._handle_menu()
 
-        # Páginas principales
+        # ENTIDADES
         if path in ("/entidades", "/entidades.html"):
             return self._handle_entidades()
 
-        if path in ("/transacciones", "/transacciones.html", "/ventas", "/ventas.html"):
-            return self._handle_transacciones()
-
-        if path in ("/reportes", "/reportes.html"):
-            return self._handle_reportes()
-
-        if path in ("/utilidades", "/utilidades.html"):
-            return self._handle_utilidades()
-
-        if path in ("/ayudas", "/ayudas.html"):
-            return self._handle_ayudas()
-
-        # Páginas detalladas adicionales
         if path in ("/usuarios", "/usuarios.html"):
             return self._handle_usuarios()
 
@@ -267,14 +449,31 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         if path in ("/categorias", "/categorias.html"):
             return self._handle_categorias()
 
+        if path in ("/proveedores", "/proveedores.html"):
+            return self._handle_proveedores()
+
+        # TRANSACCIONES / VENTAS
+        if path in ("/transacciones", "/transacciones.html", "/ventas", "/ventas.html"):
+            return self._handle_ventas()
+
         if path in ("/creditos", "/creditos.html"):
             return self._handle_creditos()
+
+        # REPORTES / UTILIDADES / AYUDAS
+        if path in ("/reportes", "/reportes.html"):
+            return self._handle_reportes()
+
+        if path in ("/utilidades", "/utilidades.html"):
+            return self._handle_utilidades()
+
+        if path in ("/bitacora", "/bitacora.html"):
+            return self._handle_bitacora()
 
         if path in ("/consultas", "/consultas.html"):
             return self._handle_consultas()
 
-        if path in ("/bitacora", "/bitacora.html"):
-            return self._handle_bitacora()
+        if path in ("/ayudas", "/ayudas.html"):
+            return self._handle_ayudas()
 
         if path in ("/registro", "/registro.html"):
             return self._handle_registro()
@@ -313,9 +512,7 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         if path == "/api/login":
             return self._handle_api_login()
 
-        # Aquí podrás ir añadiendo más POST:
-        # - /transacciones/ventas/registrar
-        # - /entidades/usuarios/crear
+        # Aquí podrás ir añadiendo más POST (registro de ventas, CRUD, etc.)
         self.send_error(404, "Ruta POST no encontrada")
 
     # ----------------- Handlers específicos ----------------- #
@@ -440,7 +637,7 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         self.send_header("Set-Cookie", "SESSION_ID=; Max-Age=0; Path=/")
         self.end_headers()
 
-    # ---- Secciones de menú ---- #
+    # ---- Secciones de menú genéricas (con plantillas estáticas) ---- #
 
     def _require_session(self) -> Optional[Session]:
         """
@@ -452,7 +649,12 @@ class TechStoreHandler(BaseHTTPRequestHandler):
             return None
         return session
 
-    def _render_simple_page(self, template: str, title: str, extra_ctx: Optional[Dict[str, str]] = None) -> None:
+    def _render_simple_page(
+        self,
+        template: str,
+        title: str,
+        extra_ctx: Optional[Dict[str, str]] = None,
+    ) -> None:
         session = self._require_session()
         if not session:
             return
@@ -468,19 +670,371 @@ class TechStoreHandler(BaseHTTPRequestHandler):
             return
 
         usuario = session.usuario
-        nombre = getattr(usuario, "nombre_completo", None) or getattr(usuario, "nombre", "")
+        nombre = getattr(usuario, "nombre_completo", None) or getattr(
+            usuario, "nombre", ""
+        )
         self._render_simple_page(
             "menu_principal.html",
             "Menú principal - TechStore",
             {"usuario_nombre": nombre},
         )
 
-    def _handle_entidades(self) -> None:
-        self._render_simple_page("entidades.html", "Entidades - TechStore")
+    # -------------------------------------------------------------------
+    # ENTIDADES (menus y listados reales)
+    # -------------------------------------------------------------------
 
-    def _handle_transacciones(self) -> None:
-        # La plantilla ventas.html describe el módulo de ventas
-        self._render_simple_page("ventas.html", "Transacciones / Ventas - TechStore")
+    def _handle_entidades(self) -> None:
+        session = self._require_session()
+        if not session:
+            return
+
+        opciones = []
+        if session.nivel == 1:
+            opciones.append('<li><a href="/usuarios">Usuarios del sistema</a></li>')
+
+        opciones.extend(
+            [
+                '<li><a href="/clientes">Clientes</a></li>',
+                '<li><a href="/categorias">Categorías</a></li>',
+                '<li><a href="/proveedores">Proveedores</a></li>',
+                '<li><a href="/productos">Productos</a></li>',
+            ]
+        )
+
+        body = f"""
+        <h2>Entidades</h2>
+        <p class="ts-subtitle">
+            Seleccione la entidad que desea consultar o administrar.
+        </p>
+        <ul class="ts-menu-list">
+            {''.join(opciones)}
+        </ul>
+        """
+        html = build_page("Entidades - TechStore", body)
+        self._send_html(html)
+
+    def _handle_usuarios(self) -> None:
+        session = self._require_session_and_level([1])  # Solo admin
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                u.id_usuario,
+                u.nombre || ' ' || u.apellido AS nombre_completo,
+                u.username,
+                r.nombre_rol AS rol,
+                u.estado
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            ORDER BY u.id_usuario
+            """
+        )
+
+        tabla = build_html_table(
+            headers=["ID", "Nombre completo", "Usuario", "Rol", "Estado"],
+            fields=["id_usuario", "nombre_completo", "username", "rol", "estado"],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Usuarios del sistema</h2>
+        <p class="ts-subtitle">
+            Usuarios internos divididos por niveles (ADMIN, PARAMÉTRICO, ESPORÁDICO).
+        </p>
+        {tabla}
+        """
+        html = build_page("Usuarios - TechStore", body)
+        self._send_html(html)
+
+    def _handle_clientes(self) -> None:
+        session = self._require_session_and_level([1, 2, 3])
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                id_cliente,
+                nombre,
+                apellido,
+                documento,
+                telefono,
+                email
+            FROM clientes
+            ORDER BY id_cliente
+            """
+        )
+
+        tabla = build_html_table(
+            headers=["ID", "Nombre", "Apellido", "Documento", "Teléfono", "Email"],
+            fields=["id_cliente", "nombre", "apellido", "documento", "telefono", "email"],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Clientes</h2>
+        <p class="ts-subtitle">
+            Listado de clientes registrados en la tienda.
+        </p>
+        {tabla}
+        """
+        html = build_page("Clientes - TechStore", body)
+        self._send_html(html)
+
+    def _handle_categorias(self) -> None:
+        session = self._require_session_and_level([1, 2, 3])
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                id_categoria,
+                nombre,
+                descripcion
+            FROM categorias
+            ORDER BY id_categoria
+            """
+        )
+
+        tabla = build_html_table(
+            headers=["ID", "Nombre", "Descripción"],
+            fields=["id_categoria", "nombre", "descripcion"],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Categorías de productos</h2>
+        {tabla}
+        """
+        html = build_page("Categorías - TechStore", body)
+        self._send_html(html)
+
+    def _handle_proveedores(self) -> None:
+        session = self._require_session_and_level([1, 2, 3])
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                id_proveedor,
+                nombre,
+                telefono,
+                email,
+                direccion
+            FROM proveedores
+            ORDER BY id_proveedor
+            """
+        )
+
+        tabla = build_html_table(
+            headers=["ID", "Nombre", "Teléfono", "Email", "Dirección"],
+            fields=["id_proveedor", "nombre", "telefono", "email", "direccion"],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Proveedores</h2>
+        {tabla}
+        """
+        html = build_page("Proveedores - TechStore", body)
+        self._send_html(html)
+
+    def _handle_productos(self) -> None:
+        session = self._require_session_and_level([1, 2, 3])
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                p.id_producto,
+                p.nombre,
+                c.nombre AS categoria,
+                pr.nombre AS proveedor,
+                p.precio_venta,
+                p.stock
+            FROM productos p
+            JOIN categorias c ON c.id_categoria = p.id_categoria
+            LEFT JOIN proveedores pr ON pr.id_proveedor = p.id_proveedor
+            ORDER BY p.id_producto
+            """
+        )
+
+        tabla = build_html_table(
+            headers=["ID", "Nombre", "Categoría", "Proveedor", "Precio venta", "Stock"],
+            fields=[
+                "id_producto",
+                "nombre",
+                "categoria",
+                "proveedor",
+                "precio_venta",
+                "stock",
+            ],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Productos</h2>
+        <p class="ts-subtitle">
+            Productos disponibles con su categoría, proveedor y stock actual.
+        </p>
+        {tabla}
+        """
+        html = build_page("Productos - TechStore", body)
+        self._send_html(html)
+
+    # -------------------------------------------------------------------
+    # VENTAS / CREDITOS
+    # -------------------------------------------------------------------
+
+    def _handle_ventas(self) -> None:
+        # Nivel 1 y 2 registran; 3 consulta. Todos pueden ver.
+        session = self._require_session_and_level([1, 2, 3])
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                v.id_venta,
+                TO_CHAR(v.fecha, 'YYYY-MM-DD HH24:MI') AS fecha,
+                u.username AS usuario,
+                c.nombre || ' ' || c.apellido AS cliente,
+                CASE v.es_credito
+                    WHEN 'S' THEN 'Crédito'
+                    ELSE 'Contado'
+                END AS tipo,
+                v.total
+            FROM ventas v
+            JOIN usuarios u ON u.id_usuario = v.id_usuario
+            JOIN clientes c ON c.id_cliente = v.id_cliente
+            ORDER BY v.fecha DESC
+            """
+        )
+
+        tabla = build_html_table(
+            headers=["ID", "Fecha", "Usuario", "Cliente", "Tipo", "Total"],
+            fields=["id_venta", "fecha", "usuario", "cliente", "tipo", "total"],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Ventas registradas</h2>
+        <p class="ts-subtitle">
+            Listado de todas las ventas realizadas (contado y crédito).
+        </p>
+        {tabla}
+        """
+        html = build_page("Ventas - TechStore", body)
+        self._send_html(html)
+
+    def _handle_creditos(self) -> None:
+        session = self._require_session_and_level([1, 2, 3])
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                cr.id_credito,
+                v.id_venta,
+                c.nombre || ' ' || c.apellido AS cliente,
+                cr.saldo_total,
+                cr.saldo_pendiente,
+                TO_CHAR(cr.fecha_vencimiento, 'YYYY-MM-DD') AS fecha_vencimiento,
+                cr.estado
+            FROM creditos cr
+            JOIN ventas v ON v.id_venta = cr.id_venta
+            JOIN clientes c ON c.id_cliente = v.id_cliente
+            ORDER BY cr.id_credito
+            """
+        )
+
+        tabla = build_html_table(
+            headers=[
+                "ID Crédito",
+                "ID Venta",
+                "Cliente",
+                "Saldo total",
+                "Saldo pendiente",
+                "Vencimiento",
+                "Estado",
+            ],
+            fields=[
+                "id_credito",
+                "id_venta",
+                "cliente",
+                "saldo_total",
+                "saldo_pendiente",
+                "fecha_vencimiento",
+                "estado",
+            ],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Créditos</h2>
+        <p class="ts-subtitle">
+            Créditos generados a partir de ventas a crédito, con su estado actual.
+        </p>
+        {tabla}
+        """
+        html = build_page("Créditos - TechStore", body)
+        self._send_html(html)
+
+    # -------------------------------------------------------------------
+    # BITÁCORA (solo admin) y otras secciones documentales
+    # -------------------------------------------------------------------
+
+    def _handle_bitacora(self) -> None:
+        # Bitácora solo tiene sentido que la vea el ADMIN
+        session = self._require_session_and_level([1])
+        if not session:
+            return
+
+        rows = db_fetch_all(
+            """
+            SELECT
+                b.id_bitacora,
+                u.username,
+                TO_CHAR(b.fecha_login,  'YYYY-MM-DD HH24:MI:SS') AS fecha_login,
+                TO_CHAR(b.fecha_logout, 'YYYY-MM-DD HH24:MI:SS') AS fecha_logout,
+                b.ip,
+                b.detalle
+            FROM bitacora_sesion b
+            JOIN usuarios u ON u.id_usuario = b.id_usuario
+            ORDER BY b.fecha_login DESC
+            """
+        )
+
+        tabla = build_html_table(
+            headers=["ID", "Usuario", "Login", "Logout", "IP", "Detalle"],
+            fields=[
+                "id_bitacora",
+                "username",
+                "fecha_login",
+                "fecha_logout",
+                "ip",
+                "detalle",
+            ],
+            rows=rows,
+        )
+
+        body = f"""
+        <h2>Bitácora de sesiones</h2>
+        <p class="ts-subtitle">
+            Registros de ingreso y salida de los usuarios del sistema.
+        </p>
+        {tabla}
+        """
+        html = build_page("Bitácora - TechStore", body)
+        self._send_html(html)
+
+    # Estas secciones siguen usando las plantillas “documentales”
 
     def _handle_reportes(self) -> None:
         self._render_simple_page("reportes.html", "Reportes y consultas - TechStore")
@@ -491,26 +1045,8 @@ class TechStoreHandler(BaseHTTPRequestHandler):
     def _handle_ayudas(self) -> None:
         self._render_simple_page("ayudas.html", "Ayudas - TechStore")
 
-    def _handle_usuarios(self) -> None:
-        self._render_simple_page("usuarios.html", "Usuarios y roles - TechStore")
-
-    def _handle_clientes(self) -> None:
-        self._render_simple_page("clientes.html", "Clientes - TechStore")
-
-    def _handle_productos(self) -> None:
-        self._render_simple_page("productos.html", "Productos - TechStore")
-
-    def _handle_categorias(self) -> None:
-        self._render_simple_page("categorias.html", "Categorías - TechStore")
-
-    def _handle_creditos(self) -> None:
-        self._render_simple_page("creditos.html", "Créditos y pagos - TechStore")
-
     def _handle_consultas(self) -> None:
         self._render_simple_page("consultas.html", "Consultas - TechStore")
-
-    def _handle_bitacora(self) -> None:
-        self._render_simple_page("bitacora.html", "Bitácora de sesiones - TechStore")
 
     def _handle_registro(self) -> None:
         self._render_simple_page("registro.html", "Registro - TechStore")

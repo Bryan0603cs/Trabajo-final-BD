@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import oracledb
 
-# -------------- AJUSTA ESTOS DATOS A TU ENTORNO -----------------
+
 DB_USER = "SYSTEM"
 DB_PASSWORD = "12345"
-DB_DSN = "localhost:1521/xe"   # cámbialo si tu servicio no es "orcl"
-# ----------------------------------------------------------------
+DB_DSN = "localhost:1521/xe"   
+
 
 
 def get_connection() -> oracledb.Connection:
