@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Ayudas</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            {{body}}
+
+            <section style="margin-top:16px;font-size:14px;">
+                <p>
+                    Aquí se puede documentar el uso de cada módulo de la aplicación:
+                    entidades, transacciones, reportes, utilidades y gestión de usuarios.
+                </p>
+                <ul style="margin-top:8px;">
+                    <li>Cómo registrar una venta de contado o a crédito.</li>
+                    <li>Cómo consultar un reporte de ventas o de IVA.</li>
+                    <li>Cómo usar la calculadora y el calendario.</li>
+                    <li>Qué permisos tiene cada nivel de usuario (Administrador, Paramétrico, Esporádico).</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

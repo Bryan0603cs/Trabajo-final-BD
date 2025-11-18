@@ -49,8 +49,11 @@ REPORTE_SERVICE = ReporteService()
 
 def render_template(template_name: str, context: Optional[Dict[str, str]] = None) -> str:
     """
-    Carga un archivo HTML de templates/ y reemplaza {placeholders} usando str.format().
-    Si el archivo no existe, devuelve una página placeholder para que no se rompa nada.
+    Carga un archivo HTML de templates/ y reemplaza {{placeholders}}.
+
+    Ej:
+      context = {"title": "TechStore", "body": "<p>Hola</p>"}
+      En la plantilla se usa {{title}} y {{body}}.
     """
     context = context or {}
     template_path = os.path.join(TEMPLATES_DIR, template_name)
@@ -58,13 +61,13 @@ def render_template(template_name: str, context: Optional[Dict[str, str]] = None
     if os.path.exists(template_path):
         with open(template_path, "r", encoding="utf-8") as f:
             content = f.read()
-        try:
-            return content.format(**context)
-        except Exception:
-            # Si hay algún error de formato, devolvemos el contenido "crudo"
-            return content
 
-    # Placeholder si aún no has creado la plantilla
+        for key, value in context.items():
+            placeholder = "{{" + key + "}}"
+            content = content.replace(placeholder, value)
+        return content
+
+    # Si no existe la plantilla, devolvemos un HTML simple
     title = context.get("title", f"Plantilla {template_name}")
     body = context.get("body", f"<p>Template {template_name} pendiente de implementar.</p>")
     return f"""<!DOCTYPE html>
@@ -79,6 +82,7 @@ def render_template(template_name: str, context: Optional[Dict[str, str]] = None
 </body>
 </html>
 """
+
 
 
 def get_static_file(path: str) -> Optional[bytes]:

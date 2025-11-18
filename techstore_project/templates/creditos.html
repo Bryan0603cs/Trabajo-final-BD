@@ -1,1 +1,59 @@
-<!-- Plantilla creditos.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créditos - TechStore</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Gestión de créditos</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/transacciones">Volver a transacciones</a>
+                <a href="/menu">Menú principal</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <section>
+                <h3>Créditos vigentes / en mora</h3>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID Crédito</th>
+                                <th>ID Venta</th>
+                                <th>Cliente</th>
+                                <th>Saldo total</th>
+                                <th>Saldo pendiente</th>
+                                <th>Vencimiento</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Aquí se reflejarían los datos de CREDITOS + CLIENTES -->
+                            <tr>
+                                <td>10</td>
+                                <td>200</td>
+                                <td>Ana Torres</td>
+                                <td>$3.000.000</td>
+                                <td>$1.200.000</td>
+                                <td>2025-12-01</td>
+                                <td>VIGENTE</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

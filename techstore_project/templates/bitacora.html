@@ -1,1 +1,55 @@
-<!-- Plantilla bitacora.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitácora de sesiones - TechStore</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Bitácora de ingreso y salida</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/utilidades">Volver a utilidades</a>
+                <a href="/menu">Menú principal</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <p>Registro de logins y logouts de usuarios en la aplicación.</p>
+            <div class="table-wrapper" style="margin-top:10px;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Fecha login</th>
+                            <th>Fecha logout</th>
+                            <th>IP</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Datos de demo -->
+                        <tr>
+                            <td>1</td>
+                            <td>admin</td>
+                            <td>2025-11-17 10:00</td>
+                            <td>2025-11-17 12:00</td>
+                            <td>127.0.0.1</td>
+                            <td>Inicio de sesión</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

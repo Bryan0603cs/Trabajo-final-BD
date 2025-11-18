@@ -1,1 +1,54 @@
-<!-- Plantilla consultas.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultas - TechStore</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Consultas multitabla</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/reportes">Volver a reportes</a>
+                <a href="/menu">Menú principal</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <p>Consultas multitabla (además de las que generan reportes):</p>
+            <ul style="margin-top:10px;font-size:14px;">
+                <li>1. Productos más vendidos en un rango de fechas.</li>
+                <li>2. Clientes con mayor valor de compra acumulado.</li>
+                <li>3. Ventas realizadas por categoría de producto en un periodo.</li>
+                <li>4. Productos que no se han vendido en un periodo dado.</li>
+                <li>5. Créditos próximos a vencer en los próximos 30 días.</li>
+            </ul>
+
+            <section style="margin-top:16px;">
+                <h3>Ejemplo: Productos más vendidos</h3>
+                <form method="GET" action="#">
+                    <div class="filter-bar">
+                        <div class="form-group">
+                            <label for="fechaInicioC1">Fecha inicio</label>
+                            <input type="date" id="fechaInicioC1" name="fechaInicio">
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaFinC1">Fecha fin</label>
+                            <input type="date" id="fechaFinC1" name="fechaFin">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-secondary">Ejecutar consulta</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

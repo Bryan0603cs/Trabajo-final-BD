@@ -1,1 +1,70 @@
-<!-- Plantilla login.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="auth-body">
+    <div class="login-container">
+        <div class="logo-container">
+            <div class="logo">⚡</div>
+            <div class="logo-text">
+                <h1>TechStore</h1>
+                <p>Dispositivos Electrónicos</p>
+            </div>
+        </div>
+
+        <div class="welcome-text">
+            <h2>Bienvenido de vuelta</h2>
+            <p>Ingresa a tu cuenta para gestionar TechStore</p>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            <!-- mensaje llenado por JS -->
+        </div>
+
+        <!-- mensaje de error inyectado desde el servidor (login fallido) -->
+        <div id="serverError" style="display:none;">
+            {{body}}
+        </div>
+
+        <form id="loginForm" method="POST" action="/login">
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" name="username" placeholder="ej: admin" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+            </div>
+
+            <div class="form-options">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Recuérdame</label>
+                </div>
+                <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" class="btn-primary">Iniciar Sesión</button>
+        </form>
+
+        <div class="divider">O</div>
+
+        <div class="register-link">
+            ¿No tienes cuenta? <a href="/registro.html">Consulta al administrador</a>
+        </div>
+
+        <div class="footer-text">
+            Al iniciar sesión, aceptas nuestros 
+            <a href="#">Términos de Servicio</a> y 
+            <a href="#">Política de Privacidad</a>.
+        </div>
+    </div>
+
+    <script src="/static/js/login.js"></script>
+</body>
+</html>

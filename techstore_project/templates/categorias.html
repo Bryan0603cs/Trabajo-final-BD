@@ -1,1 +1,72 @@
-<!-- Plantilla categorias.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorías - TechStore</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Gestión de categorías</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/entidades">Volver a entidades</a>
+                <a href="/menu">Menú principal</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <section>
+                <h3>Nueva categoría</h3>
+                <form method="POST" action="#">
+                    <div class="filter-bar">
+                        <div class="form-group">
+                            <label for="nombreCategoria">Nombre</label>
+                            <input type="text" id="nombreCategoria" name="nombre" placeholder="Audio, Video...">
+                        </div>
+                        <div class="form-group">
+                            <label for="descripcionCategoria">Descripción</label>
+                            <input type="text" id="descripcionCategoria" name="descripcion" placeholder="Descripción breve">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar categoría (demo)</button>
+                </form>
+            </section>
+
+            <section style="margin-top:18px;">
+                <h3>Categorías registradas</h3>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Audio</td>
+                                <td>Equipos de sonido y parlantes</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Video</td>
+                                <td>Televisores y proyectores</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

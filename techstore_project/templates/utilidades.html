@@ -1,1 +1,124 @@
-<!-- Plantilla utilidades.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Utilidades</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            {{body}}
+
+            <section class="utilidades-grid">
+                <!-- Calculadora -->
+                <div class="utilidad-card">
+                    <h3>Calculadora</h3>
+                    <input type="text" class="calculator-display" id="calcDisplay" readonly>
+                    <div class="calculator-buttons" id="calcButtons">
+                        <button>7</button><button>8</button><button>9</button><button>/</button>
+                        <button>4</button><button>5</button><button>6</button><button>*</button>
+                        <button>1</button><button>2</button><button>3</button><button>-</button>
+                        <button>0</button><button>.</button><button>=</button><button>+</button>
+                    </div>
+                </div>
+
+                <!-- Calendario simple -->
+                <div class="utilidad-card">
+                    <h3>Calendario (mes actual)</h3>
+                    <div id="calendarRoot" class="calendar-grid"></div>
+                </div>
+
+                <!-- Gestión de usuarios / bitácora (solo Admin a nivel funcional) -->
+                <div class="utilidad-card">
+                    <h3>Gestión de usuarios y bitácora</h3>
+                    <p>
+                        Según el enunciado, solo el <strong>Administrador (Nivel 1)</strong> puede
+                        gestionar usuarios y ver la bitácora de ingreso/salida.
+                    </p>
+                    <ul style="margin-top:8px;font-size:14px;">
+                        <li><a href="/usuarios">Gestión de usuarios</a></li>
+                        <li><a href="/bitacora">Ver bitácora de sesiones</a></li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script src="/static/js/main.js"></script>
+<script>
+    // Lógica simple de calculadora (solo en esta página para no complicar los JS)
+    document.addEventListener("DOMContentLoaded", () => {
+        const display = document.getElementById("calcDisplay");
+        const buttons = document.getElementById("calcButtons");
+        if (!display || !buttons) return;
+
+        buttons.addEventListener("click", (e) => {
+            if (!(e.target instanceof HTMLButtonElement)) return;
+            const value = e.target.textContent;
+
+            if (!value) return;
+
+            if (value === "=") {
+                try {
+                    // Evaluación muy básica; suficiente para utilidad simple
+                    // (en un entorno real, tendrías algo más robusto).
+                    // eslint-disable-next-line no-eval
+                    display.value = eval(display.value || "0").toString();
+                } catch {
+                    display.value = "Error";
+                }
+                return;
+            }
+
+            display.value += value;
+        });
+
+        // Calendario muy simple
+        const calendarRoot = document.getElementById("calendarRoot");
+        if (calendarRoot) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); // 0-11
+            const firstDay = new Date(year, month, 1).getDay(); // 0=Dom
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const weekDays = ["D", "L", "M", "X", "J", "V", "S"];
+            weekDays.forEach((d) => {
+                const cell = document.createElement("div");
+                cell.textContent = d;
+                cell.classList.add("calendar-header");
+                calendarRoot.appendChild(cell);
+            });
+
+            // huecos antes del primer día
+            for (let i = 0; i < firstDay; i += 1) {
+                const cell = document.createElement("div");
+                calendarRoot.appendChild(cell);
+            }
+
+            for (let d = 1; d <= daysInMonth; d += 1) {
+                const cell = document.createElement("div");
+                cell.textContent = String(d);
+                cell.classList.add("calendar-day");
+                calendarRoot.appendChild(cell);
+            }
+        }
+    });
+</script>
+</body>
+</html>

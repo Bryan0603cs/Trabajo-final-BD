@@ -1,1 +1,124 @@
-<!-- Plantilla reportes.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Reportes y consultas</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            {{body}}
+
+            <section style="margin-top: 18px;">
+                <h3>Reportes principales</h3>
+
+                <!-- 1. Factura de venta del cliente (al momento de la compra) -->
+                <div class="utilidad-card" style="margin-top:12px;">
+                    <h4>1. Factura de venta del cliente</h4>
+                    <form method="GET" action="#" id="formFacturaVenta">
+                        <div class="filter-bar">
+                            <div class="form-group">
+                                <label for="idVentaFactura">ID venta</label>
+                                <input type="number" id="idVentaFactura" name="idVenta" placeholder="Ej: 100">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-secondary">Generar (PDF)</button>
+                    </form>
+                </div>
+
+                <!-- 2. Total de ventas durante un mes -->
+                <div class="utilidad-card" style="margin-top:12px;">
+                    <h4>2. Total de ventas por mes</h4>
+                    <form method="GET" action="#" id="formReporteVentasMes">
+                        <div class="filter-bar">
+                            <div class="form-group">
+                                <label for="mesVentas">Mes</label>
+                                <input type="number" id="mesVentas" name="mes" min="1" max="12" placeholder="1-12">
+                            </div>
+                            <div class="form-group">
+                                <label for="anioVentas">Año</label>
+                                <input type="number" id="anioVentas" name="anio" placeholder="2025">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-secondary">Generar (PDF)</button>
+                    </form>
+                </div>
+
+                <!-- 3. Valor total IVA trimestre -->
+                <div class="utilidad-card" style="margin-top:12px;">
+                    <h4>3. Valor total del IVA por trimestre</h4>
+                    <form method="GET" action="#" id="formReporteIvaTrimestre">
+                        <div class="filter-bar">
+                            <div class="form-group">
+                                <label for="trimestreIva">Trimestre</label>
+                                <select id="trimestreIva" name="trimestre">
+                                    <option value="1">1 (Ene-Mar)</option>
+                                    <option value="2">2 (Abr-Jun)</option>
+                                    <option value="3">3 (Jul-Sep)</option>
+                                    <option value="4">4 (Oct-Dic)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="anioIva">Año</label>
+                                <input type="number" id="anioIva" name="anio" placeholder="2025">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-secondary">Generar (PDF)</button>
+                    </form>
+                </div>
+
+                <!-- 4. Cantidad de ventas crédito vs contado -->
+                <div class="utilidad-card" style="margin-top:12px;">
+                    <h4>4. Cantidad de ventas crédito vs contado en un periodo</h4>
+                    <form method="GET" action="#">
+                        <div class="filter-bar">
+                            <div class="form-group">
+                                <label for="fechaInicioPeriodo">Fecha inicio</label>
+                                <input type="date" id="fechaInicioPeriodo" name="fechaInicio">
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaFinPeriodo">Fecha fin</label>
+                                <input type="date" id="fechaFinPeriodo" name="fechaFin">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-secondary">Generar (PDF)</button>
+                    </form>
+                </div>
+
+                <!-- 5. Inventario de productos por categoría -->
+                <div class="utilidad-card" style="margin-top:12px;">
+                    <h4>5. Inventario de productos por categoría</h4>
+                    <form method="GET" action="#">
+                        <button type="submit" class="btn-secondary">Generar (PDF)</button>
+                    </form>
+                </div>
+
+                <!-- 6. Clientes morosos -->
+                <div class="utilidad-card" style="margin-top:12px;">
+                    <h4>6. Clientes con créditos en mora</h4>
+                    <form method="GET" action="#">
+                        <button type="submit" class="btn-secondary">Generar (PDF)</button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/static/js/main.js"></script>
+<script src="/static/js/reportes.js"></script>
+</body>
+</html>

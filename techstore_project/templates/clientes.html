@@ -1,1 +1,88 @@
-<!-- Plantilla clientes.html (por implementar) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - TechStore</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Gestión de clientes</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/entidades">Volver a entidades</a>
+                <a href="/menu">Menú principal</a>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <section>
+                <h3>Nuevo cliente</h3>
+                <form method="POST" action="#">
+                    <div class="filter-bar">
+                        <div class="form-group">
+                            <label for="docCliente">Documento</label>
+                            <input type="text" id="docCliente" name="documento">
+                        </div>
+                        <div class="form-group">
+                            <label for="nombreCliente">Nombre</label>
+                            <input type="text" id="nombreCliente" name="nombre">
+                        </div>
+                        <div class="form-group">
+                            <label for="apellidoCliente">Apellido</label>
+                            <input type="text" id="apellidoCliente" name="apellido">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefonoCliente">Teléfono</label>
+                            <input type="text" id="telefonoCliente" name="telefono">
+                        </div>
+                        <div class="form-group">
+                            <label for="direccionCliente">Dirección</label>
+                            <input type="text" id="direccionCliente" name="direccion">
+                        </div>
+                        <div class="form-group">
+                            <label for="emailCliente">Email</label>
+                            <input type="email" id="emailCliente" name="email">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar cliente (demo)</button>
+                </form>
+            </section>
+
+            <section style="margin-top:18px;">
+                <h3>Clientes registrados</h3>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Documento</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- demo -->
+                            <tr>
+                                <td>1</td>
+                                <td>123456789</td>
+                                <td>Ana Torres</td>
+                                <td>3001234567</td>
+                                <td>ana@correo.com</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
