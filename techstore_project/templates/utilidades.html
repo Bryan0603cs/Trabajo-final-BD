@@ -21,104 +21,103 @@
         </header>
 
         <main class="app-content">
-            {{body}}
+            <section class="section-block">
+                <h2 class="section-title">Herramientas de apoyo</h2>
+                <p class="section-intro">
+                    Este módulo reúne pequeñas utilidades que facilitan el trabajo diario,
+                    como una calculadora rápida para operaciones básicas y un calendario de
+                    referencia para fechas de corte o vencimientos.
+                </p>
+            </section>
 
-            <section class="utilidades-grid">
+            <section class="cards-grid">
                 <!-- Calculadora -->
-                <div class="utilidad-card">
-                    <h3>Calculadora</h3>
-                    <input type="text" class="calculator-display" id="calcDisplay" readonly>
-                    <div class="calculator-buttons" id="calcButtons">
-                        <button>7</button><button>8</button><button>9</button><button>/</button>
-                        <button>4</button><button>5</button><button>6</button><button>*</button>
-                        <button>1</button><button>2</button><button>3</button><button>-</button>
-                        <button>0</button><button>.</button><button>=</button><button>+</button>
-                    </div>
-                </div>
+                <article class="entity-card">
+                    <h3>Calculadora rápida</h3>
+                    <p style="font-size: 13px; color: #555;">
+                        Útil para hacer verificaciones rápidas de totales, porcentajes de IVA,
+                        descuentos, etc.
+                    </p>
+                    <form class="report-form" onsubmit="return false;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="calcA">Valor A</label>
+                                <input type="number" id="calcA" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="calcB">Valor B</label>
+                                <input type="number" id="calcB" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="calcOp">Operación</label>
+                            <select id="calcOp">
+                                <option value="sum">Suma (A + B)</option>
+                                <option value="sub">Resta (A - B)</option>
+                                <option value="mul">Multiplicación (A × B)</option>
+                                <option value="div">División (A ÷ B)</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-primary-sm" onclick="runCalc()">
+                            Calcular
+                        </button>
+                        <p id="calcResult" style="margin-top: 8px; font-size: 13px; color: #1a1a4d;"></p>
+                    </form>
+                </article>
 
                 <!-- Calendario simple -->
-                <div class="utilidad-card">
-                    <h3>Calendario (mes actual)</h3>
-                    <div id="calendarRoot" class="calendar-grid"></div>
-                </div>
-
-                <!-- Gestión de usuarios / bitácora (solo Admin a nivel funcional) -->
-                <div class="utilidad-card">
-                    <h3>Gestión de usuarios y bitácora</h3>
-                    <p>
-                        Según el enunciado, solo el <strong>Administrador (Nivel 1)</strong> puede
-                        gestionar usuarios y ver la bitácora de ingreso/salida.
+                <article class="entity-card">
+                    <h3>Calendario de referencia</h3>
+                    <p style="font-size: 13px; color: #555;">
+                        Selecciona una fecha para marcar cortes de mes, vencimiento de créditos
+                        o días importantes de gestión.
                     </p>
-                    <ul style="margin-top:8px;font-size:14px;">
-                        <li><a href="/usuarios">Gestión de usuarios</a></li>
-                        <li><a href="/bitacora">Ver bitácora de sesiones</a></li>
-                    </ul>
-                </div>
+                    <div class="form-group">
+                        <label for="calFecha">Fecha</label>
+                        <input type="date" id="calFecha">
+                    </div>
+                    <p id="calTexto" style="font-size: 13px; color: #1a1a4d; margin-top: 6px;">
+                        No hay fecha seleccionada.
+                    </p>
+                </article>
             </section>
         </main>
     </div>
 </div>
 
-<script src="/static/js/main.js"></script>
 <script>
-    // Lógica simple de calculadora (solo en esta página para no complicar los JS)
-    document.addEventListener("DOMContentLoaded", () => {
-        const display = document.getElementById("calcDisplay");
-        const buttons = document.getElementById("calcButtons");
-        if (!display || !buttons) return;
+    function runCalc() {
+        const a = parseFloat(document.getElementById('calcA').value || '0');
+        const b = parseFloat(document.getElementById('calcB').value || '0');
+        const op = document.getElementById('calcOp').value;
+        let res;
 
-        buttons.addEventListener("click", (e) => {
-            if (!(e.target instanceof HTMLButtonElement)) return;
-            const value = e.target.textContent;
-
-            if (!value) return;
-
-            if (value === "=") {
-                try {
-                    // Evaluación muy básica; suficiente para utilidad simple
-                    // (en un entorno real, tendrías algo más robusto).
-                    // eslint-disable-next-line no-eval
-                    display.value = eval(display.value || "0").toString();
-                } catch {
-                    display.value = "Error";
-                }
+        if (op === 'sum') res = a + b;
+        else if (op === 'sub') res = a - b;
+        else if (op === 'mul') res = a * b;
+        else if (op === 'div') {
+            if (b === 0) {
+                document.getElementById('calcResult').textContent = 'No se puede dividir por cero.';
                 return;
             }
-
-            display.value += value;
-        });
-
-        // Calendario muy simple
-        const calendarRoot = document.getElementById("calendarRoot");
-        if (calendarRoot) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth(); // 0-11
-            const firstDay = new Date(year, month, 1).getDay(); // 0=Dom
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            const weekDays = ["D", "L", "M", "X", "J", "V", "S"];
-            weekDays.forEach((d) => {
-                const cell = document.createElement("div");
-                cell.textContent = d;
-                cell.classList.add("calendar-header");
-                calendarRoot.appendChild(cell);
-            });
-
-            // huecos antes del primer día
-            for (let i = 0; i < firstDay; i += 1) {
-                const cell = document.createElement("div");
-                calendarRoot.appendChild(cell);
-            }
-
-            for (let d = 1; d <= daysInMonth; d += 1) {
-                const cell = document.createElement("div");
-                cell.textContent = String(d);
-                cell.classList.add("calendar-day");
-                calendarRoot.appendChild(cell);
-            }
+            res = a / b;
         }
-    });
+
+        document.getElementById('calcResult').textContent = 'Resultado: ' + res.toFixed(2);
+    }
+
+    const calInput = document.getElementById('calFecha');
+    const calTexto = document.getElementById('calTexto');
+    if (calInput) {
+        calInput.addEventListener('change', () => {
+            if (!calInput.value) {
+                calTexto.textContent = 'No hay fecha seleccionada.';
+            } else {
+                calTexto.textContent = 'Fecha seleccionada: ' + calInput.value;
+            }
+        });
+    }
 </script>
+<script src="/static/js/main.js"></script>
 </body>
 </html>

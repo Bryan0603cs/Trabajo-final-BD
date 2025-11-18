@@ -12,7 +12,7 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Ayudas</span>
+                <span>Ayudas y manual de usuario</span>
             </div>
             <div class="app-header-actions">
                 <a href="/menu">Menú principal</a>
@@ -21,19 +21,80 @@
         </header>
 
         <main class="app-content">
-            {{body}}
-
-            <section style="margin-top:16px;font-size:14px;">
+            <section class="section-block">
+                <h2 class="section-title">1. Inicio de sesión</h2>
                 <p>
-                    Aquí se puede documentar el uso de cada módulo de la aplicación:
-                    entidades, transacciones, reportes, utilidades y gestión de usuarios.
+                    Para acceder a la aplicación, el usuario debe ingresar su nombre de usuario
+                    y contraseña en la pantalla de login. Si las credenciales son correctas,
+                    el sistema registra la entrada en la tabla <strong>BITACORA_SESION</strong>
+                    y habilita el menú principal.
                 </p>
-                <ul style="margin-top:8px;">
-                    <li>Cómo registrar una venta de contado o a crédito.</li>
-                    <li>Cómo consultar un reporte de ventas o de IVA.</li>
-                    <li>Cómo usar la calculadora y el calendario.</li>
-                    <li>Qué permisos tiene cada nivel de usuario (Administrador, Paramétrico, Esporádico).</li>
+
+                <ul class="help-list">
+                    <li><strong>Administrador:</strong> Puede usar todos los módulos, crear usuarios y consultar la bitácora.</li>
+                    <li><strong>Paramétrico:</strong> Registra ventas, administra clientes, productos y demás entidades, pero no usuarios.</li>
+                    <li><strong>Esporádico:</strong> Solo puede realizar consultas y generar reportes.</li>
                 </ul>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">2. Módulo de Entidades</h2>
+                <p>
+                    En este módulo se administran las tablas maestras del sistema: usuarios, clientes,
+                    categorías, proveedores, productos, compras y demás entidades. El administrador
+                    define la estructura de los datos y el paramétrico mantiene la información actualizada.
+                </p>
+                <p>
+                    Desde aquí se garantiza la integridad de la base de datos, evitando registros
+                    huérfanos y manteniendo consistencia en las claves foráneas.
+                </p>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">3. Transacciones (Ventas y Créditos)</h2>
+                <p>
+                    El módulo de transacciones permite registrar ventas de contado y ventas a crédito.
+                    Cada venta genera un registro en <strong>VENTAS</strong> y sus productos asociados
+                    se almacenan en <strong>DETALLE_VENTAS</strong>. 
+                </p>
+                <p>
+                    Cuando la venta es a crédito, automáticamente se crea un registro en
+                    <strong>CREDITOS</strong>, con el saldo total y la fecha de vencimiento.
+                    Cada abono del cliente se almacena en la tabla <strong>PAGOS</strong>.
+                </p>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">4. Reportes y Consultas</h2>
+                <p>
+                    Este módulo concentra los reportes obligatorios del proyecto (factura de venta,
+                    totales mensuales, IVA por trimestre, comparación crédito/contado, inventario
+                    por categoría y clientes con créditos en mora), todos en formato PDF.
+                </p>
+                <p>
+                    Además, se plantean consultas multitabla adicionales (por ejemplo, productos
+                    más vendidos, clientes con mayor compra acumulada, ventas por categoría, etc.)
+                    que ayudan a analizar el comportamiento del negocio.
+                </p>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">5. Utilidades</h2>
+                <p>
+                    En la opción de utilidades se incluyen herramientas de apoyo como una calculadora
+                    rápida para valores de venta y un calendario simple para visualizar fechas
+                    importantes (cortes de mes, vencimiento de créditos, etc.).
+                </p>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">6. Bitácora de sesiones</h2>
+                <p>
+                    Cada vez que un usuario inicia o cierra sesión se registra un evento en la
+                    tabla <strong>BITACORA_SESION</strong> con la fecha y hora correspondientes.
+                    Este módulo solo está disponible para el administrador y permite hacer
+                    seguimiento de la actividad del sistema.
+                </p>
             </section>
         </main>
     </div>

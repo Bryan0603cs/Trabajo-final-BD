@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categorías - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="app-body">
@@ -12,54 +12,39 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Gestión de categorías</span>
+                <span>Categorías de productos</span>
             </div>
             <div class="app-header-actions">
-                <a href="/entidades">Volver a entidades</a>
                 <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            <section>
-                <h3>Nueva categoría</h3>
-                <form method="POST" action="#">
-                    <div class="filter-bar">
-                        <div class="form-group">
-                            <label for="nombreCategoria">Nombre</label>
-                            <input type="text" id="nombreCategoria" name="nombre" placeholder="Audio, Video...">
-                        </div>
-                        <div class="form-group">
-                            <label for="descripcionCategoria">Descripción</label>
-                            <input type="text" id="descripcionCategoria" name="descripcion" placeholder="Descripción breve">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Guardar categoría (demo)</button>
-                </form>
+            <section class="section-block">
+                <h2 class="section-title">Rol de las categorías</h2>
+                <p class="section-intro">
+                    La tabla <strong>CATEGORIAS</strong> se utiliza para agrupar los productos
+                    según su tipo (televisores, lavadoras, neveras, etc.). Esta información
+                    es fundamental para los reportes de inventario y análisis de ventas.
+                </p>
             </section>
 
-            <section style="margin-top:18px;">
-                <h3>Categorías registradas</h3>
+            <section class="section-block">
+                <h2 class="section-title">Estructura de la tabla CATEGORIAS</h2>
                 <div class="table-wrapper">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                            </tr>
+                        <tr>
+                            <th>Columna</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Audio</td>
-                                <td>Equipos de sonido y parlantes</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Video</td>
-                                <td>Televisores y proyectores</td>
-                            </tr>
+                        <tr><td>ID_CATEGORIA</td><td>NUMBER (PK)</td><td>Identificador de la categoría</td></tr>
+                        <tr><td>NOMBRE</td><td>VARCHAR2(100)</td><td>Nombre de la categoría</td></tr>
+                        <tr><td>DESCRIPCION</td><td>VARCHAR2(200)</td><td>Descripción corta</td></tr>
                         </tbody>
                     </table>
                 </div>

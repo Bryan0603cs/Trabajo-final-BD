@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from dataclasses import dataclass
@@ -33,8 +34,7 @@ class Session:
     nivel: int  # 1=Admin, 2=Paramétrico, 3=Esporádico
 
 
-# Sesiones en memoria. En un sistema real usarías otra cosa, pero para
-# el proyecto académico es suficiente.
+# Sesiones en memoria
 SESSIONS: Dict[str, Session] = {}
 
 # Servicios de negocio (singleton simple)
@@ -44,16 +44,12 @@ REPORTE_SERVICE = ReporteService()
 
 
 # ---------------------------------------------------------------------------
-# Utilidades para plantillas y respuestas
+# Utilidades para plantillas y recursos estáticos
 # ---------------------------------------------------------------------------
 
 def render_template(template_name: str, context: Optional[Dict[str, str]] = None) -> str:
     """
     Carga un archivo HTML de templates/ y reemplaza {{placeholders}}.
-
-    Ej:
-      context = {"title": "TechStore", "body": "<p>Hola</p>"}
-      En la plantilla se usa {{title}} y {{body}}.
     """
     context = context or {}
     template_path = os.path.join(TEMPLATES_DIR, template_name)
@@ -64,7 +60,7 @@ def render_template(template_name: str, context: Optional[Dict[str, str]] = None
 
         for key, value in context.items():
             placeholder = "{{" + key + "}}"
-            content = content.replace(placeholder, value)
+            content = content.replace(placeholder, str(value))
         return content
 
     # Si no existe la plantilla, devolvemos un HTML simple
@@ -82,7 +78,6 @@ def render_template(template_name: str, context: Optional[Dict[str, str]] = None
 </body>
 </html>
 """
-
 
 
 def get_static_file(path: str) -> Optional[bytes]:
@@ -123,7 +118,6 @@ def nivel_from_usuario(usuario: Usuario) -> int:
         return 2
     if usuario.id_rol == ROLE_ESPORADICO_ID:
         return 3
-    # por defecto lo tratamos como esporádico
     return 3
 
 
@@ -132,39 +126,15 @@ def nivel_from_usuario(usuario: Usuario) -> int:
 # ---------------------------------------------------------------------------
 
 class TechStoreHandler(BaseHTTPRequestHandler):
+    auth_service = AuthService()
+    reporte_service = ReporteService()
+
     """
     Servidor HTTP sin frameworks para el proyecto TechStore.
-
-    Rutas principales (alineadas con el proyecto):
-
-    - GET  /                → Redirige a /login
-    - GET  /login           → Muestra formulario de login
-    - POST /login           → Procesa login
-    - GET  /logout          → Cierra sesión
-
-    - GET  /menu            → Menú principal
-        Secciones visibles:
-        - Entidades
-        - Transacciones
-        - Reportes / Consultas
-        - Utilidades
-        - Ayudas
-
-    - GET  /entidades       → Página general de Entidades
-    - GET  /transacciones   → Página general de Transacciones
-    - GET  /reportes        → Página general de Reportes/Consultas
-    - GET  /utilidades      → Página general de Utilidades
-    - GET  /ayudas          → Página general de Ayudas
-
-    Más adelante se pueden detallar:
-      - /entidades/usuarios, /entidades/productos, etc.
-      - /transacciones/ventas/nueva, etc.
-      - /reportes/ventas, /reportes/creditos, etc.
     """
 
-    # Evitar que http.server imprima cada request en consola
     def log_message(self, format: str, *args) -> None:  # noqa: A003
-        # Si quieres ver los logs, comenta este pass y descomenta el print.
+        # Comenta el pass y descomenta el print si quieres ver logs.
         # print("%s - - [%s] %s" % (self.client_address[0],
         #       self.log_date_time_string(), format % args))
         pass
@@ -217,6 +187,30 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _send_json(
+        self,
+        obj: Dict[str, object],
+        status: int = 200,
+        extra_headers: Optional[Dict[str, str]] = None,
+    ) -> None:
+        data = json.dumps(obj).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        if extra_headers:
+            for k, v in extra_headers.items():
+                self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _send_pdf(self, pdf_bytes: bytes, filename: str) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "application/pdf")
+        self.send_header("Content-Disposition", f'inline; filename="{filename}"')
+        self.send_header("Content-Length", str(len(pdf_bytes)))
+        self.end_headers()
+        self.wfile.write(pdf_bytes)
+
     def _redirect(self, location: str) -> None:
         self.send_response(302)
         self.send_header("Location", location)
@@ -227,34 +221,82 @@ class TechStoreHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         path = parsed.path
+        query = parse_qs(parsed.query)
 
         # Archivos estáticos (css/js/images)
         if path.startswith("/static/"):
             return self._handle_static(path)
 
-        if path in ("/", "/login"):
+        # Login (incluye alias /login.html)
+        if path in ("/", "/login", "/login.html"):
             return self._handle_login_page()
 
         if path == "/logout":
             return self._handle_logout()
 
-        if path == "/menu":
+        # Menú principal (alias /menu_principal.html)
+        if path in ("/menu", "/menu_principal.html"):
             return self._handle_menu()
 
-        if path == "/entidades":
+        # Páginas principales
+        if path in ("/entidades", "/entidades.html"):
             return self._handle_entidades()
 
-        if path == "/transacciones":
+        if path in ("/transacciones", "/transacciones.html", "/ventas", "/ventas.html"):
             return self._handle_transacciones()
 
-        if path == "/reportes":
+        if path in ("/reportes", "/reportes.html"):
             return self._handle_reportes()
 
-        if path == "/utilidades":
+        if path in ("/utilidades", "/utilidades.html"):
             return self._handle_utilidades()
 
-        if path == "/ayudas":
+        if path in ("/ayudas", "/ayudas.html"):
             return self._handle_ayudas()
+
+        # Páginas detalladas adicionales
+        if path in ("/usuarios", "/usuarios.html"):
+            return self._handle_usuarios()
+
+        if path in ("/clientes", "/clientes.html"):
+            return self._handle_clientes()
+
+        if path in ("/productos", "/productos.html"):
+            return self._handle_productos()
+
+        if path in ("/categorias", "/categorias.html"):
+            return self._handle_categorias()
+
+        if path in ("/creditos", "/creditos.html"):
+            return self._handle_creditos()
+
+        if path in ("/consultas", "/consultas.html"):
+            return self._handle_consultas()
+
+        if path in ("/bitacora", "/bitacora.html"):
+            return self._handle_bitacora()
+
+        if path in ("/registro", "/registro.html"):
+            return self._handle_registro()
+
+        # Endpoints PDF de reportes
+        if path == "/reportes/factura":
+            return self._handle_reporte_factura(query)
+
+        if path == "/reportes/ventas-mes":
+            return self._handle_reporte_ventas_mes(query)
+
+        if path == "/reportes/iva-trimestre":
+            return self._handle_reporte_iva_trimestre(query)
+
+        if path == "/reportes/ventas-tipo":
+            return self._handle_reporte_ventas_tipo(query)
+
+        if path == "/reportes/inventario-categoria":
+            return self._handle_reporte_inventario_categoria()
+
+        if path == "/reportes/clientes-mora":
+            return self._handle_reporte_clientes_mora()
 
         # Si no coincide con nada:
         self.send_error(404, "Ruta no encontrada")
@@ -263,13 +305,17 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
 
+        # Login clásico (form POST /login)
         if path == "/login":
             return self._handle_login_submit()
+
+        # Login nuevo con fetch('/api/login') desde login.html
+        if path == "/api/login":
+            return self._handle_api_login()
 
         # Aquí podrás ir añadiendo más POST:
         # - /transacciones/ventas/registrar
         # - /entidades/usuarios/crear
-        # etc.
         self.send_error(404, "Ruta POST no encontrada")
 
     # ----------------- Handlers específicos ----------------- #
@@ -301,8 +347,6 @@ class TechStoreHandler(BaseHTTPRequestHandler):
             "login.html",
             {
                 "title": "Login - TechStore",
-                # body lo dejamos vacío porque será reemplazado cuando
-                # creemos la plantilla; por ahora el placeholder muestra algo.
             },
         )
         self._send_html(html)
@@ -318,7 +362,6 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         resultado = AUTH_SERVICE.login(username, password, ip=self.client_address[0])
 
         if resultado is None:
-            # Login fallido: volvemos al login con un mensaje simple
             html = render_template(
                 "login.html",
                 {
@@ -336,6 +379,58 @@ class TechStoreHandler(BaseHTTPRequestHandler):
         self.send_header("Location", "/menu")
         self.send_header("Set-Cookie", f"SESSION_ID={sid}; HttpOnly; Path=/")
         self.end_headers()
+
+    def _handle_api_login(self) -> None:
+        """
+        Endpoint para el login por fetch('/api/login') que usa tu login.html moderno.
+        Espera JSON: { "correo": "...", "contrasena": "..." }
+        y responde JSON: { "success": true/false, "message": "...", "usuario": {...} }
+        """
+        content_length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(content_length) if content_length > 0 else b""
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except Exception:
+            return self._send_json(
+                {"success": False, "message": "JSON inválido"},
+                status=400,
+            )
+
+        username = (data.get("correo") or data.get("username") or "").strip()
+        password = (data.get("contrasena") or data.get("password") or "").strip()
+
+        if not username or not password:
+            return self._send_json(
+                {"success": False, "message": "Usuario y contraseña son obligatorios"},
+                status=400,
+            )
+
+        resultado = AUTH_SERVICE.login(username, password, ip=self.client_address[0])
+
+        if resultado is None:
+            return self._send_json(
+                {"success": False, "message": "Usuario o contraseña incorrectos"},
+                status=401,
+            )
+
+        # Crear sesión y cookie
+        sid = self._create_session(resultado)
+        usuario = resultado.usuario
+
+        public_user = {
+            "id_usuario": getattr(usuario, "id_usuario", None),
+            "username": getattr(usuario, "username", None),
+            "nombre": getattr(usuario, "nombre", None),
+            "apellido": getattr(usuario, "apellido", None),
+            "rol": getattr(usuario, "id_rol", None),
+        }
+
+        headers = {"Set-Cookie": f"SESSION_ID={sid}; HttpOnly; Path=/"}
+        return self._send_json(
+            {"success": True, "usuario": public_user},
+            status=200,
+            extra_headers=headers,
+        )
 
     def _handle_logout(self) -> None:
         self._destroy_session()
@@ -357,199 +452,199 @@ class TechStoreHandler(BaseHTTPRequestHandler):
             return None
         return session
 
+    def _render_simple_page(self, template: str, title: str, extra_ctx: Optional[Dict[str, str]] = None) -> None:
+        session = self._require_session()
+        if not session:
+            return
+        ctx = {"title": title}
+        if extra_ctx:
+            ctx.update(extra_ctx)
+        html = render_template(template, ctx)
+        self._send_html(html)
+
     def _handle_menu(self) -> None:
         session = self._require_session()
         if not session:
             return
 
         usuario = session.usuario
-        nivel = session.nivel
-
-        # Aquí solo mostramos un menú general; luego el HTML real lo
-        # montamos en templates/menu_principal.html
-        body = f"""
-        <p>Bienvenido/a, <strong>{usuario.nombre_completo}</strong> (Nivel {nivel})</p>
-        <ul>
-            <li><a href="/entidades">Entidades</a></li>
-            <li><a href="/transacciones">Transacciones</a></li>
-            <li><a href="/reportes">Reportes / Consultas</a></li>
-            <li><a href="/utilidades">Utilidades</a></li>
-            <li><a href="/ayudas">Ayudas</a></li>
-        </ul>
-        <p><a href="/logout">Cerrar sesión</a></p>
-        """
-        html = render_template(
+        nombre = getattr(usuario, "nombre_completo", None) or getattr(usuario, "nombre", "")
+        self._render_simple_page(
             "menu_principal.html",
-            {
-                "title": "Menú principal - TechStore",
-                "body": body,
-            },
+            "Menú principal - TechStore",
+            {"usuario_nombre": nombre},
         )
-        self._send_html(html)
 
     def _handle_entidades(self) -> None:
-        session = self._require_session()
-        if not session:
-            return
-
-        # Control simple de niveles:
-        # - Admin (1): puede ver todo (usuarios, productos, clientes, etc.)
-        # - Paramétrico (2): NO puede ver gestión de usuarios ni bitácora
-        # - Esporádico (3): en principio no debería gestionar entidades,
-        #   pero puede ver listados simples si lo decides así.
-        opciones = []
-
-        if session.nivel == 1:
-            opciones.append("<li>Gestión de Usuarios (solo Admin)</li>")
-
-        opciones.extend(
-            [
-                "<li>Gestión de Clientes</li>",
-                "<li>Gestión de Categorías</li>",
-                "<li>Gestión de Productos</li>",
-                "<li>Gestión de Proveedores</li>",
-            ]
-        )
-
-        body = """
-        <h2>Entidades</h2>
-        <p>Aquí irán las pantallas de mantenimiento (CRUD) de las tablas principales.</p>
-        <ul>
-            {opciones}
-        </ul>
-        <p><a href="/menu">Volver al menú principal</a></p>
-        """.format(
-            opciones="\n".join(opciones)
-        )
-
-        html = render_template(
-            "entidades.html",
-            {
-                "title": "Entidades - TechStore",
-                "body": body,
-            },
-        )
-        self._send_html(html)
+        self._render_simple_page("entidades.html", "Entidades - TechStore")
 
     def _handle_transacciones(self) -> None:
-        session = self._require_session()
-        if not session:
-            return
-
-        # Aquí la transacción principal es: Ventas (contado / crédito)
-        body = """
-        <h2>Transacciones (Movimientos)</h2>
-        <p>Aquí se manejará el registro de ventas de contado y a crédito.</p>
-        <ul>
-            <li>Registrar nueva venta de contado</li>
-            <li>Registrar nueva venta a crédito</li>
-            <li>Consultar ventas realizadas</li>
-        </ul>
-        <p><em>Más adelante aquí conectaremos los formularios HTML con VentaService.</em></p>
-        <p><a href="/menu">Volver al menú principal</a></p>
-        """
-        html = render_template(
-            "ventas.html",
-            {
-                "title": "Transacciones - TechStore",
-                "body": body,
-            },
-        )
-        self._send_html(html)
+        # La plantilla ventas.html describe el módulo de ventas
+        self._render_simple_page("ventas.html", "Transacciones / Ventas - TechStore")
 
     def _handle_reportes(self) -> None:
-        session = self._require_session()
-        if not session:
-            return
-
-        # Nivel 3 (esporádico) solo debería acceder a consultas/reportes.
-        # Así que este menú está permitido para todos.
-        body = """
-        <h2>Reportes y Consultas</h2>
-        <p>Aquí se implementarán los reportes requeridos por el enunciado:</p>
-        <ol>
-            <li>Factura de venta del cliente al momento de la compra.</li>
-            <li>Total de ventas durante un mes determinado.</li>
-            <li>Valor total del IVA a pagar durante un trimestre dado.</li>
-            <li>Cantidad de ventas hechas a crédito y de contado en un periodo.</li>
-            <li>Inventario de productos por categoría con su costo asociado.</li>
-            <li>Clientes que han comprado a crédito y están en mora.</li>
-        </ol>
-        <p><em>En el código, estos se implementarán usando ReporteService y pdf_generator.</em></p>
-        <p><a href="/menu">Volver al menú principal</a></p>
-        """
-        html = render_template(
-            "reportes.html",
-            {
-                "title": "Reportes y consultas - TechStore",
-                "body": body,
-            },
-        )
-        self._send_html(html)
+        self._render_simple_page("reportes.html", "Reportes y consultas - TechStore")
 
     def _handle_utilidades(self) -> None:
-        session = self._require_session()
-        if not session:
-            return
-
-        # Aquí van mini apps como Calculadora, calendario, etc.,
-        # y también la gestión de usuarios y bitácora
-        # (solo para el administrador, según el enunciado).
-        utilidades = [
-            "<li>Calculadora (utilidad)</li>",
-            "<li>Calendario (utilidad)</li>",
-        ]
-
-        if session.nivel == 1:
-            utilidades.extend(
-                [
-                    "<li>Gestión de usuarios (crear / editar / borrar)</li>",
-                    "<li>Bitácora de ingreso y salida de usuarios</li>",
-                ]
-            )
-        else:
-            utilidades.append(
-                "<li>Gestión de usuarios y bitácora (solo visible para Administrador)</li>"
-            )
-
-        body = """
-        <h2>Utilidades</h2>
-        <ul>
-            {contenido}
-        </ul>
-        <p><a href="/menu">Volver al menú principal</a></p>
-        """.format(
-            contenido="\n".join(utilidades)
-        )
-
-        html = render_template(
-            "utilidades.html",
-            {
-                "title": "Utilidades - TechStore",
-                "body": body,
-            },
-        )
-        self._send_html(html)
+        self._render_simple_page("utilidades.html", "Utilidades - TechStore")
 
     def _handle_ayudas(self) -> None:
+        self._render_simple_page("ayudas.html", "Ayudas - TechStore")
+
+    def _handle_usuarios(self) -> None:
+        self._render_simple_page("usuarios.html", "Usuarios y roles - TechStore")
+
+    def _handle_clientes(self) -> None:
+        self._render_simple_page("clientes.html", "Clientes - TechStore")
+
+    def _handle_productos(self) -> None:
+        self._render_simple_page("productos.html", "Productos - TechStore")
+
+    def _handle_categorias(self) -> None:
+        self._render_simple_page("categorias.html", "Categorías - TechStore")
+
+    def _handle_creditos(self) -> None:
+        self._render_simple_page("creditos.html", "Créditos y pagos - TechStore")
+
+    def _handle_consultas(self) -> None:
+        self._render_simple_page("consultas.html", "Consultas - TechStore")
+
+    def _handle_bitacora(self) -> None:
+        self._render_simple_page("bitacora.html", "Bitácora de sesiones - TechStore")
+
+    def _handle_registro(self) -> None:
+        self._render_simple_page("registro.html", "Registro - TechStore")
+
+    # ---- Reportes PDF ---- #
+
+    def _handle_reporte_factura(self, query: Dict[str, list]) -> None:
         session = self._require_session()
         if not session:
             return
+        try:
+            venta_id = int(query.get("idVenta", ["0"])[0])
+        except ValueError:
+            venta_id = 0
 
-        body = """
-        <h2>Ayudas</h2>
-        <p>Aquí podrás colocar manual de usuario, información de contacto, etc.</p>
-        <p>Por ejemplo, una breve guía de cómo usar cada módulo de la aplicación.</p>
-        <p><a href="/menu">Volver al menú principal</a></p>
-        """
-        html = render_template(
-            "ayudas.html",
-            {
-                "title": "Ayudas - TechStore",
-                "body": body,
-            },
-        )
-        self._send_html(html)
+        if venta_id <= 0:
+            html = render_template(
+                "reportes.html",
+                {
+                    "title": "Reportes - TechStore",
+                    "body": "<p>ID de venta inválido.</p>",
+                },
+            )
+            return self._send_html(html, status=400)
+
+        try:
+            pdf = REPORTE_SERVICE.factura_venta_pdf(venta_id)
+        except Exception as ex:
+            html = render_template(
+                "reportes.html",
+                {
+                    "title": "Reportes - TechStore",
+                    "body": f"<p>Error al generar factura: {ex}</p>",
+                },
+            )
+            return self._send_html(html, status=500)
+
+        self._send_pdf(pdf, f"factura_{venta_id}.pdf")
+
+    def _handle_reporte_ventas_mes(self, query: Dict[str, list]) -> None:
+        session = self._require_session()
+        if not session:
+            return
+        try:
+            mes = int(query.get("mes", ["0"])[0])
+            anio = int(query.get("anio", ["0"])[0])
+            pdf = REPORTE_SERVICE.ventas_mes_pdf(mes, anio)
+        except Exception as ex:
+            html = render_template(
+                "reportes.html",
+                {
+                    "title": "Reportes - TechStore",
+                    "body": f"<p>Error al generar reporte de ventas del mes: {ex}</p>",
+                },
+            )
+            return self._send_html(html, status=500)
+
+        self._send_pdf(pdf, f"ventas_mes_{anio}_{mes:02d}.pdf")
+
+    def _handle_reporte_iva_trimestre(self, query: Dict[str, list]) -> None:
+        session = self._require_session()
+        if not session:
+            return
+        try:
+            tri = int(query.get("trimestre", ["0"])[0])
+            anio = int(query.get("anio", ["0"])[0])
+            pdf = REPORTE_SERVICE.iva_trimestre_pdf(tri, anio)
+        except Exception as ex:
+            html = render_template(
+                "reportes.html",
+                {
+                    "title": "Reportes - TechStore",
+                    "body": f"<p>Error al generar reporte de IVA: {ex}</p>",
+                },
+            )
+            return self._send_html(html, status=500)
+
+        self._send_pdf(pdf, f"iva_trimestre_{anio}_T{tri}.pdf")
+
+    def _handle_reporte_ventas_tipo(self, query: Dict[str, list]) -> None:
+        session = self._require_session()
+        if not session:
+            return
+        try:
+            fi = query.get("fechaInicio", [""])[0]
+            ff = query.get("fechaFin", [""])[0]
+            pdf = REPORTE_SERVICE.ventas_credito_vs_contado_pdf(fi, ff)
+        except Exception as ex:
+            html = render_template(
+                "reportes.html",
+                {
+                    "title": "Reportes - TechStore",
+                    "body": f"<p>Error al generar reporte de ventas por tipo: {ex}</p>",
+                },
+            )
+            return self._send_html(html, status=500)
+
+        self._send_pdf(pdf, "ventas_credito_vs_contado.pdf")
+
+    def _handle_reporte_inventario_categoria(self) -> None:
+        session = self._require_session()
+        if not session:
+            return
+        try:
+            pdf = REPORTE_SERVICE.inventario_por_categoria_pdf()
+        except Exception as ex:
+            html = render_template(
+                "reportes.html",
+                {
+                    "title": "Reportes - TechStore",
+                    "body": f"<p>Error al generar reporte de inventario: {ex}</p>",
+                },
+            )
+            return self._send_html(html, status=500)
+
+        self._send_pdf(pdf, "inventario_por_categoria.pdf")
+
+    def _handle_reporte_clientes_mora(self) -> None:
+        session = self._require_session()
+        if not session:
+            return
+        try:
+            pdf = REPORTE_SERVICE.clientes_morosos_pdf()
+        except Exception as ex:
+            html = render_template(
+                "reportes.html",
+                {
+                    "title": "Reportes - TechStore",
+                    "body": f"<p>Error al generar reporte de clientes morosos: {ex}</p>",
+                },
+            )
+            return self._send_html(html, status=500)
+
+        self._send_pdf(pdf, "clientes_mora.pdf")
 
 
 # ---------------------------------------------------------------------------

@@ -3,37 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="auth-body">
-<div class="login-container">
-    <div class="logo-container">
-        <div class="logo">⚡</div>
-        <div class="logo-text">
-            <h1>TechStore</h1>
-            <p>Dispositivos Electrónicos</p>
-        </div>
-    </div>
+<body class="app-body">
+<div class="page-wrapper">
+    <div class="app-card">
+        <header class="app-header">
+            <div class="app-header-title">
+                <h1>TechStore</h1>
+                <span>Solicitud de registro</span>
+            </div>
+            <div class="app-header-actions">
+                <a href="/login">Volver al login</a>
+            </div>
+        </header>
 
-    <div class="welcome-text">
-        <h2>Registro de usuarios</h2>
-        <p>La creación de usuarios se realiza únicamente por el Administrador.</p>
-    </div>
+        <main class="app-content">
+            <section class="section-block">
+                <p class="section-intro">
+                    En el sistema real, la creación de cuentas la realiza el administrador
+                    desde el módulo de usuarios. Esta pantalla simula una solicitud de alta,
+                    que podría ser procesada posteriormente.
+                </p>
+            </section>
 
-    <p style="font-size:14px;color:#666;margin-bottom:10px;">
-        Si necesitas acceso a la aplicación, contacta al administrador del sistema para que te
-        asigne un usuario con el nivel correspondiente:
-    </p>
-    <ul style="font-size:14px;color:#555;margin-left:18px;margin-bottom:12px;">
-        <li>Nivel 1: Administrador (todas las opciones, gestiona usuarios y bitácora).</li>
-        <li>Nivel 2: Paramétrico (no gestiona usuarios ni bitácora).</li>
-        <li>Nivel 3: Esporádico (solo consultas y reportes).</li>
-    </ul>
+            <section class="section-block">
+                <form class="report-form">
+                    <div class="form-group">
+                        <label for="regNombre">Nombre</label>
+                        <input type="text" id="regNombre" placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group">
+                        <label for="regApellido">Apellido</label>
+                        <input type="text" id="regApellido" placeholder="Tu apellido">
+                    </div>
+                    <div class="form-group">
+                        <label for="regCorreo">Correo electrónico</label>
+                        <input type="email" id="regCorreo" placeholder="tu@correo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="regComentario">Comentario adicional</label>
+                        <textarea id="regComentario" rows="3" placeholder="Indica por qué necesitas acceso al sistema"></textarea>
+                    </div>
 
-    <div class="footer-text">
-        <a href="/login">Volver al inicio de sesión</a>
+                    <button type="button" class="btn-primary">
+                        Enviar solicitud (demo)
+                    </button>
+                    <p style="font-size: 12px; color: #777; margin-top: 8px;">
+                        Nota: Esta acción es demostrativa y no registra datos reales en la base de datos.
+                    </p>
+                </form>
+            </section>
+        </main>
     </div>
 </div>
+<script src="/static/js/main.js"></script>
 </body>
 </html>

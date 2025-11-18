@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Créditos - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="app-body">
@@ -12,44 +12,78 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Gestión de créditos</span>
+                <span>Créditos y pagos</span>
             </div>
             <div class="app-header-actions">
-                <a href="/transacciones">Volver a transacciones</a>
                 <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            <section>
-                <h3>Créditos vigentes / en mora</h3>
-                <div class="table-wrapper">
-                    <table class="table">
-                        <thead>
+            <section class="section-block">
+                <h2 class="section-title">Descripción</h2>
+                <p class="section-intro">
+                    Cuando una venta se realiza a crédito, el sistema crea un registro en
+                    la tabla <strong>CREDITOS</strong> con el saldo total y la fecha de vencimiento.
+                    Cada abono que realiza el cliente se almacena en <strong>PAGOS</strong>.
+                </p>
+            </section>
+
+            <section class="cards-grid">
+                <article class="entity-card">
+                    <h3>Tabla CREDITOS</h3>
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
                             <tr>
-                                <th>ID Crédito</th>
-                                <th>ID Venta</th>
-                                <th>Cliente</th>
-                                <th>Saldo total</th>
-                                <th>Saldo pendiente</th>
-                                <th>Vencimiento</th>
-                                <th>Estado</th>
+                                <th>Columna</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí se reflejarían los datos de CREDITOS + CLIENTES -->
+                            </thead>
+                            <tbody>
+                            <tr><td>ID_CREDITO</td><td>NUMBER (PK)</td><td>Identificador del crédito</td></tr>
+                            <tr><td>ID_VENTA</td><td>NUMBER (FK)</td><td>Venta asociada</td></tr>
+                            <tr><td>SALDO_TOTAL</td><td>NUMBER(12,2)</td><td>Valor total financiado</td></tr>
+                            <tr><td>SALDO_PENDIENTE</td><td>NUMBER(12,2)</td><td>Saldo por pagar</td></tr>
+                            <tr><td>FECHA_VENCIMIENTO</td><td>DATE</td><td>Fecha límite de pago</td></tr>
+                            <tr><td>ESTADO</td><td>VARCHAR2(20)</td><td>VIGENTE / PAGADO / MORA</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="entity-card">
+                    <h3>Tabla PAGOS</h3>
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
                             <tr>
-                                <td>10</td>
-                                <td>200</td>
-                                <td>Ana Torres</td>
-                                <td>$3.000.000</td>
-                                <td>$1.200.000</td>
-                                <td>2025-12-01</td>
-                                <td>VIGENTE</td>
+                                <th>Columna</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
                             </tr>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            <tr><td>ID_PAGO</td><td>NUMBER (PK)</td><td>Identificador del pago</td></tr>
+                            <tr><td>ID_CREDITO</td><td>NUMBER (FK)</td><td>Crédito al que se aplica</td></tr>
+                            <tr><td>FECHA_PAGO</td><td>DATE</td><td>Fecha en que se registró el pago</td></tr>
+                            <tr><td>MONTO</td><td>NUMBER(12,2)</td><td>Valor abonado</td></tr>
+                            <tr><td>SALDO_RESTANTE</td><td>NUMBER(12,2)</td><td>Saldo pendiente después del abono</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">Relación con los reportes</h2>
+                <ul class="help-list">
+                    <li>Los créditos en estado <strong>MORA</strong> se listan en el reporte de clientes morosos.</li>
+                    <li>Los pagos permiten reconstruir el historial de abonos de cada cliente.</li>
+                    <li>Los saldos sirven para estimar la cartera pendiente de TechStore.</li>
+                </ul>
             </section>
         </main>
     </div>

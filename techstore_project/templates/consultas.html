@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultas - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="app-body">
@@ -12,39 +12,74 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Consultas multitabla</span>
+                <span>Consultas</span>
             </div>
             <div class="app-header-actions">
-                <a href="/reportes">Volver a reportes</a>
                 <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            <p>Consultas multitabla (además de las que generan reportes):</p>
-            <ul style="margin-top:10px;font-size:14px;">
-                <li>1. Productos más vendidos en un rango de fechas.</li>
-                <li>2. Clientes con mayor valor de compra acumulado.</li>
-                <li>3. Ventas realizadas por categoría de producto en un periodo.</li>
-                <li>4. Productos que no se han vendido en un periodo dado.</li>
-                <li>5. Créditos próximos a vencer en los próximos 30 días.</li>
-            </ul>
+            <section class="section-block">
+                <h2 class="section-title">Consultas de apoyo a la gestión</h2>
+                <p class="section-intro">
+                    Este módulo describe algunas consultas SQL que se pueden implementar
+                    sobre el modelo de datos de TechStore para apoyar la toma de decisiones.
+                    En una versión posterior podrían exponerse como listados dinámicos.
+                </p>
+            </section>
 
-            <section style="margin-top:16px;">
-                <h3>Ejemplo: Productos más vendidos</h3>
-                <form method="GET" action="#">
-                    <div class="filter-bar">
-                        <div class="form-group">
-                            <label for="fechaInicioC1">Fecha inicio</label>
-                            <input type="date" id="fechaInicioC1" name="fechaInicio">
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaFinC1">Fecha fin</label>
-                            <input type="date" id="fechaFinC1" name="fechaFin">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-secondary">Ejecutar consulta</button>
-                </form>
+            <section class="cards-grid">
+                <article class="report-card">
+                    <h3>1. Productos más vendidos</h3>
+                    <p>
+                        Permite identificar los productos con mayor rotación, sumando la
+                        cantidad vendida en <strong>DETALLE_VENTAS</strong>.
+                    </p>
+                    <p class="section-intro">
+                        Consulta base (Oracle):
+                    </p>
+                    <pre class="section-intro" style="font-size: 11px; white-space: pre-wrap;">
+SELECT p.NOMBRE,
+       SUM(dv.CANTIDAD) AS UNIDADES_VENDIDAS
+FROM DETALLE_VENTAS dv
+JOIN PRODUCTOS p ON dv.ID_PRODUCTO = p.ID_PRODUCTO
+GROUP BY p.NOMBRE
+ORDER BY UNIDADES_VENDIDAS DESC;
+                    </pre>
+                </article>
+
+                <article class="report-card">
+                    <h3>2. Clientes con mayor compra acumulada</h3>
+                    <p>
+                        Consulta para conocer qué clientes generan más ingresos al negocio.
+                    </p>
+                    <pre class="section-intro" style="font-size: 11px; white-space: pre-wrap;">
+SELECT c.NOMBRE || ' ' || c.APELLIDO AS CLIENTE,
+       SUM(v.TOTAL) AS TOTAL_COMPRAS
+FROM VENTAS v
+JOIN CLIENTES c ON v.ID_CLIENTE = c.ID_CLIENTE
+GROUP BY c.NOMBRE, c.APELLIDO
+ORDER BY TOTAL_COMPRAS DESC;
+                    </pre>
+                </article>
+
+                <article class="report-card">
+                    <h3>3. Ventas por categoría</h3>
+                    <p>
+                        Permite ver qué categorías de productos aportan más a las ventas.
+                    </p>
+                    <pre class="section-intro" style="font-size: 11px; white-space: pre-wrap;">
+SELECT cat.NOMBRE AS CATEGORIA,
+       SUM(dv.SUBTOTAL) AS TOTAL_VENDIDO
+FROM DETALLE_VENTAS dv
+JOIN PRODUCTOS p ON dv.ID_PRODUCTO = p.ID_PRODUCTO
+JOIN CATEGORIAS cat ON p.ID_CATEGORIA = cat.ID_CATEGORIA
+GROUP BY cat.NOMBRE
+ORDER BY TOTAL_VENDIDO DESC;
+                    </pre>
+                </article>
             </section>
         </main>
     </div>

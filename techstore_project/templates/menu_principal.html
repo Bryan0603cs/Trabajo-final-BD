@@ -15,17 +15,64 @@
                 <span>Menú principal</span>
             </div>
             <div class="app-header-actions">
-                <span class="user-chip">Sesión activa</span>
+                <a href="/ayudas">Ayuda</a>
                 <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            {{body}}
+            <section class="section-block">
+                <p class="section-intro">
+                    Bienvenido al sistema de gestión de ventas y créditos de <strong>TechStore</strong>.
+                    Desde este menú puedes acceder a la administración de entidades, registrar
+                    transacciones y generar reportes sobre la información almacenada en Oracle.
+                </p>
+            </section>
+
+            <section class="cards-grid">
+                <a class="report-card" href="/entidades">
+                    <h3>Entidades</h3>
+                    <p>Descripción de las tablas principales del modelo (usuarios, clientes, productos, etc.).</p>
+                </a>
+
+                <a class="report-card" href="/ventas">
+                    <h3>Ventas</h3>
+                    <p>Registro de ventas de contado y a crédito, asociadas a clientes y productos.</p>
+                </a>
+
+                <a class="report-card" href="/creditos">
+                    <h3>Créditos y pagos</h3>
+                    <p>Gestión de créditos generados por ventas a plazo y registro de abonos.</p>
+                </a>
+
+                <a class="report-card" href="/reportes">
+                    <h3>Reportes</h3>
+                    <p>Generación de los reportes exigidos por el enunciado en formato PDF.</p>
+                </a>
+
+                <a class="report-card" href="/consultas">
+                    <h3>Consultas</h3>
+                    <p>Consultas multitabla de apoyo a la toma de decisiones (productos, clientes, saldos, etc.).</p>
+                </a>
+
+                <a class="report-card" href="/usuarios">
+                    <h3>Usuarios y roles</h3>
+                    <p>Visualización conceptual de los usuarios, niveles de acceso y perfiles del sistema.</p>
+                </a>
+
+                <a class="report-card" href="/bitacora">
+                    <h3>Bitácora de sesiones</h3>
+                    <p>Resumen de los ingresos y salidas de los usuarios en la aplicación.</p>
+                </a>
+
+                <a class="report-card" href="/utilidades">
+                    <h3>Utilidades</h3>
+                    <p>Calculadora rápida y calendario de apoyo para fechas de corte y vencimientos.</p>
+                </a>
+            </section>
         </main>
     </div>
 </div>
-
 <script src="/static/js/main.js"></script>
 </body>
 </html>

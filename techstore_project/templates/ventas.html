@@ -12,7 +12,7 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Transacciones (Ventas)</span>
+                <span>Módulo de ventas</span>
             </div>
             <div class="app-header-actions">
                 <a href="/menu">Menú principal</a>
@@ -21,32 +21,75 @@
         </header>
 
         <main class="app-content">
-            {{body}}
+            <section class="section-block">
+                <h2 class="section-title">Descripción</h2>
+                <p class="section-intro">
+                    En este módulo se registran las ventas de contado y a crédito. Cada venta
+                    genera un registro en <strong>VENTAS</strong> y sus productos asociados se
+                    almacenan en <strong>DETALLE_VENTAS</strong>.
+                </p>
+            </section>
 
-            <!-- Aquí ya dejamos espacio para el formulario de venta -->
-            <section style="margin-top: 18px;">
-                <h3>Registrar nueva venta (demo)</h3>
-                <form id="formVenta" method="POST" action="#">
-                    <div class="filter-bar">
-                        <div class="form-group">
-                            <label for="clienteId">ID Cliente</label>
-                            <input type="number" id="clienteId" name="clienteId" placeholder="Ej: 10">
-                        </div>
-                        <div class="form-group">
-                            <label for="tipoVenta">Tipo de venta</label>
-                            <select id="tipoVenta" name="tipoVenta">
-                                <option value="contado">Contado</option>
-                                <option value="credito">Crédito</option>
-                            </select>
-                        </div>
+            <section class="cards-grid">
+                <article class="entity-card">
+                    <h3>Tabla VENTAS</h3>
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Columna</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>ID_VENTA</td><td>NUMBER (PK)</td><td>Identificador de la venta</td></tr>
+                            <tr><td>FECHA</td><td>DATE</td><td>Fecha de la venta</td></tr>
+                            <tr><td>ID_USUARIO</td><td>NUMBER (FK)</td><td>Usuario que registra la operación</td></tr>
+                            <tr><td>ID_CLIENTE</td><td>NUMBER (FK)</td><td>Cliente asociado</td></tr>
+                            <tr><td>TOTAL</td><td>NUMBER(12,2)</td><td>Valor total de la venta</td></tr>
+                            <tr><td>ES_CREDITO</td><td>CHAR(1)</td><td>“S” si es a crédito, “N” si es de contado</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <button type="submit" class="btn-primary">Registrar venta (demo)</button>
-                </form>
+                </article>
+
+                <article class="entity-card">
+                    <h3>Tabla DETALLE_VENTAS</h3>
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Columna</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>ID_DETALLE_VENTA</td><td>NUMBER (PK)</td><td>Identificador del detalle</td></tr>
+                            <tr><td>ID_VENTA</td><td>NUMBER (FK)</td><td>Venta asociada</td></tr>
+                            <tr><td>ID_PRODUCTO</td><td>NUMBER (FK)</td><td>Producto vendido</td></tr>
+                            <tr><td>CANTIDAD</td><td>NUMBER</td><td>Unidades vendidas</td></tr>
+                            <tr><td>PRECIO_UNITARIO</td><td>NUMBER(12,2)</td><td>Precio por unidad</td></tr>
+                            <tr><td>SUBTOTAL</td><td>NUMBER(12,2)</td><td>CANTIDAD * PRECIO_UNITARIO</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">Flujo de una venta</h2>
+                <ul class="help-list">
+                    <li>Se selecciona el cliente y el tipo de venta (contado o crédito).</li>
+                    <li>Se agregan los productos al detalle con su cantidad.</li>
+                    <li>El sistema calcula el total y, si es crédito, genera el respectivo registro en <strong>CREDITOS</strong>.</li>
+                    <li>El reporte de factura de venta utiliza esta información para generar el PDF.</li>
+                </ul>
             </section>
         </main>
     </div>
 </div>
 <script src="/static/js/main.js"></script>
-<script src="/static/js/ventas.js"></script>
 </body>
 </html>

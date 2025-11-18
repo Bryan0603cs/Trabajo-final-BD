@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clientes - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="app-body">
@@ -12,73 +12,55 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Gestión de clientes</span>
+                <span>Clientes</span>
             </div>
             <div class="app-header-actions">
-                <a href="/entidades">Volver a entidades</a>
                 <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            <section>
-                <h3>Nuevo cliente</h3>
-                <form method="POST" action="#">
-                    <div class="filter-bar">
-                        <div class="form-group">
-                            <label for="docCliente">Documento</label>
-                            <input type="text" id="docCliente" name="documento">
-                        </div>
-                        <div class="form-group">
-                            <label for="nombreCliente">Nombre</label>
-                            <input type="text" id="nombreCliente" name="nombre">
-                        </div>
-                        <div class="form-group">
-                            <label for="apellidoCliente">Apellido</label>
-                            <input type="text" id="apellidoCliente" name="apellido">
-                        </div>
-                        <div class="form-group">
-                            <label for="telefonoCliente">Teléfono</label>
-                            <input type="text" id="telefonoCliente" name="telefono">
-                        </div>
-                        <div class="form-group">
-                            <label for="direccionCliente">Dirección</label>
-                            <input type="text" id="direccionCliente" name="direccion">
-                        </div>
-                        <div class="form-group">
-                            <label for="emailCliente">Email</label>
-                            <input type="email" id="emailCliente" name="email">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Guardar cliente (demo)</button>
-                </form>
+            <section class="section-block">
+                <h2 class="section-title">Descripción del módulo</h2>
+                <p class="section-intro">
+                    La tabla <strong>CLIENTES</strong> almacena la información básica de las personas
+                    que realizan compras en TechStore. Estos datos se utilizan en las ventas y
+                    en los reportes de créditos.
+                </p>
             </section>
 
-            <section style="margin-top:18px;">
-                <h3>Clientes registrados</h3>
+            <section class="section-block">
+                <h2 class="section-title">Estructura de la tabla CLIENTES</h2>
                 <div class="table-wrapper">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Documento</th>
-                                <th>Nombre</th>
-                                <th>Teléfono</th>
-                                <th>Email</th>
-                            </tr>
+                        <tr>
+                            <th>Columna</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <!-- demo -->
-                            <tr>
-                                <td>1</td>
-                                <td>123456789</td>
-                                <td>Ana Torres</td>
-                                <td>3001234567</td>
-                                <td>ana@correo.com</td>
-                            </tr>
+                        <tr><td>ID_CLIENTE</td><td>NUMBER (PK)</td><td>Identificador único del cliente</td></tr>
+                        <tr><td>NOMBRE</td><td>VARCHAR2(100)</td><td>Nombre del cliente</td></tr>
+                        <tr><td>APELLIDO</td><td>VARCHAR2(100)</td><td>Apellido del cliente</td></tr>
+                        <tr><td>DOCUMENTO</td><td>VARCHAR2(30)</td><td>Cédula o identificación (única)</td></tr>
+                        <tr><td>TELEFONO</td><td>VARCHAR2(30)</td><td>Teléfono de contacto</td></tr>
+                        <tr><td>DIRECCION</td><td>VARCHAR2(200)</td><td>Dirección de residencia</td></tr>
+                        <tr><td>EMAIL</td><td>VARCHAR2(120)</td><td>Correo electrónico</td></tr>
                         </tbody>
                     </table>
                 </div>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">Uso en el sistema</h2>
+                <ul class="help-list">
+                    <li>Se seleccionan al registrar una venta.</li>
+                    <li>Permiten identificar a los clientes con créditos o saldos pendientes.</li>
+                    <li>Soportan reportes de tipo “clientes morosos” o “clientes con mayor compra acumulada”.</li>
+                </ul>
             </section>
         </main>
     </div>

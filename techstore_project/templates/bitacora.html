@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitácora de sesiones - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="app-body">
@@ -12,41 +12,55 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Bitácora de ingreso y salida</span>
+                <span>Bitácora de sesiones</span>
             </div>
             <div class="app-header-actions">
-                <a href="/utilidades">Volver a utilidades</a>
                 <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            <p>Registro de logins y logouts de usuarios en la aplicación.</p>
-            <div class="table-wrapper" style="margin-top:10px;">
-                <table class="table">
-                    <thead>
+            <section class="section-block">
+                <h2 class="section-title">Objetivo de la bitácora</h2>
+                <p class="section-intro">
+                    La tabla <strong>BITACORA_SESION</strong> registra cada vez que un usuario
+                    inicia y cierra sesión en el sistema. Esta información es útil para fines
+                    de auditoría y seguimiento.
+                </p>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">Estructura de la tabla BITACORA_SESION</h2>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Fecha login</th>
-                            <th>Fecha logout</th>
-                            <th>IP</th>
-                            <th>Detalle</th>
+                            <th>Columna</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Datos de demo -->
-                        <tr>
-                            <td>1</td>
-                            <td>admin</td>
-                            <td>2025-11-17 10:00</td>
-                            <td>2025-11-17 12:00</td>
-                            <td>127.0.0.1</td>
-                            <td>Inicio de sesión</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                        <tr><td>ID_BITACORA</td><td>NUMBER (PK)</td><td>Identificador del registro de sesión</td></tr>
+                        <tr><td>ID_USUARIO</td><td>NUMBER (FK)</td><td>Usuario que inició sesión</td></tr>
+                        <tr><td>FECHA_LOGIN</td><td>DATE</td><td>Fecha y hora de ingreso</td></tr>
+                        <tr><td>FECHA_LOGOUT</td><td>DATE</td><td>Fecha y hora de salida</td></tr>
+                        <tr><td>IP</td><td>VARCHAR2(45)</td><td>Dirección IP del equipo cliente</td></tr>
+                        <tr><td>DETALLE</td><td>VARCHAR2(200)</td><td>Información adicional</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">Uso en el proyecto</h2>
+                <ul class="help-list">
+                    <li>El login desde la pantalla principal crea un registro con <strong>FECHA_LOGIN</strong>.</li>
+                    <li>Al cerrar sesión, se actualiza la <strong>FECHA_LOGOUT</strong> en el mismo registro.</li>
+                    <li>Un administrador puede analizar la bitácora para identificar patrones de uso.</li>
+                </ul>
+            </section>
         </main>
     </div>
 </div>

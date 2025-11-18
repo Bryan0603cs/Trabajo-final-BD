@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de usuarios - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="app-body">
@@ -12,74 +12,84 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Gestión de usuarios (solo administrador)</span>
+                <span>Módulo de usuarios y roles</span>
             </div>
             <div class="app-header-actions">
-                <a href="/utilidades">Volver a utilidades</a>
                 <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            <section>
-                <h3>Crear / editar usuario</h3>
-                <form id="formUsuario" method="POST" action="#">
-                    <div class="filter-bar">
-                        <div class="form-group">
-                            <label for="username">Usuario</label>
-                            <input type="text" id="username" name="username" placeholder="ej: param1">
-                        </div>
-                        <div class="form-group">
-                            <label for="nombre">Nombre</label>
-                            <input type="text" id="nombre" name="nombre" placeholder="Nombre">
-                        </div>
-                        <div class="form-group">
-                            <label for="apellido">Apellido</label>
-                            <input type="text" id="apellido" name="apellido" placeholder="Apellido">
-                        </div>
-                        <div class="form-group">
-                            <label for="rol">Rol</label>
-                            <select id="rol" name="rol">
-                                <option value="1">Administrador (1)</option>
-                                <option value="2">Paramétrico (2)</option>
-                                <option value="3">Esporádico (3)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Guardar usuario (demo)</button>
-                </form>
+            <section class="section-block">
+                <h2 class="section-title">Descripción general</h2>
+                <p class="section-intro">
+                    El módulo de usuarios controla quién puede acceder al sistema y qué operaciones
+                    puede realizar. La base de datos utiliza dos tablas principales:
+                    <strong>USUARIOS</strong> y <strong>ROLES</strong>.
+                </p>
             </section>
 
-            <section style="margin-top:20px;">
-                <h3>Usuarios registrados</h3>
-                <div class="table-wrapper">
-                    <table class="table">
-                        <thead>
+            <section class="cards-grid">
+                <article class="entity-card">
+                    <h3>Tabla ROLES</h3>
+                    <p>Define los perfiles de acceso al sistema.</p>
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Usuario</th>
-                                <th>Nombre</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
+                                <th>Columna</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí se poblaría con los datos del DAO -->
+                            </thead>
+                            <tbody>
+                            <tr><td>ID_ROL</td><td>NUMBER (PK)</td><td>Identificador del rol</td></tr>
+                            <tr><td>NOMBRE_ROL</td><td>VARCHAR2(50)</td><td>Nombre del rol (ADMIN, PARAMETRICO, ESPORADICO)</td></tr>
+                            <tr><td>DESCRIPCION</td><td>VARCHAR2(200)</td><td>Descripción del nivel de acceso</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="entity-card">
+                    <h3>Tabla USUARIOS</h3>
+                    <p>Almacena las credenciales y el rol de cada usuario del sistema.</p>
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
                             <tr>
-                                <td>1</td>
-                                <td>admin</td>
-                                <td>Admin Principal</td>
-                                <td>Administrador</td>
-                                <td>ACTIVO</td>
+                                <th>Columna</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
                             </tr>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            <tr><td>ID_USUARIO</td><td>NUMBER (PK)</td><td>Identificador del usuario</td></tr>
+                            <tr><td>NOMBRE</td><td>VARCHAR2(100)</td><td>Nombre del usuario</td></tr>
+                            <tr><td>APELLIDO</td><td>VARCHAR2(100)</td><td>Apellido del usuario</td></tr>
+                            <tr><td>USERNAME</td><td>VARCHAR2(50)</td><td>Nombre de usuario (login)</td></tr>
+                            <tr><td>PASSWORD_HASH</td><td>VARCHAR2(200)</td><td>Contraseña encriptada (SHA-256)</td></tr>
+                            <tr><td>ESTADO</td><td>VARCHAR2(20)</td><td>ACTIVO / INACTIVO</td></tr>
+                            <tr><td>FECHA_CREACION</td><td>DATE</td><td>Fecha de creación del usuario</td></tr>
+                            <tr><td>ID_ROL</td><td>NUMBER (FK)</td><td>Referencia al rol asignado</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">Niveles de acceso</h2>
+                <ul class="help-list">
+                    <li><strong>ADMIN:</strong> Acceso completo (usuarios, entidades, reportes, bitácora).</li>
+                    <li><strong>PARAMÉTRICO:</strong> Mantiene maestros (clientes, productos, etc.) y registra ventas.</li>
+                    <li><strong>ESPORÁDICO:</strong> Acceso solo a consultas y reportes.</li>
+                </ul>
             </section>
         </main>
     </div>
 </div>
 <script src="/static/js/main.js"></script>
-<script src="/static/js/usuarios.js"></script>
 </body>
 </html>

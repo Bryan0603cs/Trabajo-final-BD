@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos - TechStore</title>
+    <title>{{title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="app-body">
@@ -12,79 +12,60 @@
         <header class="app-header">
             <div class="app-header-title">
                 <h1>TechStore</h1>
-                <span>Gestión de productos</span>
+                <span>Productos e inventario</span>
             </div>
             <div class="app-header-actions">
-                <a href="/entidades">Volver a entidades</a>
                 <a href="/menu">Menú principal</a>
+                <a href="/logout">Cerrar sesión</a>
             </div>
         </header>
 
         <main class="app-content">
-            <section>
-                <h3>Nuevo producto</h3>
-                <form method="POST" action="#">
-                    <div class="filter-bar">
-                        <div class="form-group">
-                            <label for="nombreProducto">Nombre</label>
-                            <input type="text" id="nombreProducto" name="nombre">
-                        </div>
-                        <div class="form-group">
-                            <label for="categoriaProducto">Categoría</label>
-                            <select id="categoriaProducto" name="idCategoria">
-                                <option value="1">Audio</option>
-                                <option value="2">Video</option>
-                                <option value="3">Tecnología</option>
-                                <option value="4">Cocina</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="precioCompra">Precio compra</label>
-                            <input type="number" id="precioCompra" name="precioCompra" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="precioVenta">Precio venta</label>
-                            <input type="number" id="precioVenta" name="precioVenta" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="stockProducto">Stock</label>
-                            <input type="number" id="stockProducto" name="stock">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Guardar producto (demo)</button>
-                </form>
+            <section class="section-block">
+                <h2 class="section-title">Descripción del módulo</h2>
+                <p class="section-intro">
+                    La tabla <strong>PRODUCTOS</strong> representa el catálogo de electrodomésticos
+                    que maneja TechStore. Cada producto está asociado a una categoría y a un proveedor,
+                    y mantiene información de precios y stock.
+                </p>
             </section>
 
-            <section style="margin-top:18px;">
-                <h3>Productos registrados</h3>
+            <section class="section-block">
+                <h2 class="section-title">Estructura de la tabla PRODUCTOS</h2>
                 <div class="table-wrapper">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Precio venta</th>
-                                <th>Stock</th>
-                            </tr>
+                        <tr>
+                            <th>Columna</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <!-- demo -->
-                            <tr>
-                                <td>1</td>
-                                <td>Televisor 50"</td>
-                                <td>Video</td>
-                                <td>$2.500.000</td>
-                                <td>10</td>
-                            </tr>
+                        <tr><td>ID_PRODUCTO</td><td>NUMBER (PK)</td><td>Identificador del producto</td></tr>
+                        <tr><td>NOMBRE</td><td>VARCHAR2(150)</td><td>Nombre comercial</td></tr>
+                        <tr><td>DESCRIPCION</td><td>VARCHAR2(200)</td><td>Descripción corta</td></tr>
+                        <tr><td>PRECIO_COMPRA</td><td>NUMBER(12,2)</td><td>Costo de adquisición</td></tr>
+                        <tr><td>PRECIO_VENTA</td><td>NUMBER(12,2)</td><td>Precio de venta al público</td></tr>
+                        <tr><td>STOCK</td><td>NUMBER</td><td>Unidades disponibles</td></tr>
+                        <tr><td>ID_CATEGORIA</td><td>NUMBER (FK)</td><td>Categoría del producto</td></tr>
+                        <tr><td>ID_PROVEEDOR</td><td>NUMBER (FK)</td><td>Proveedor asociado</td></tr>
                         </tbody>
                     </table>
                 </div>
+            </section>
+
+            <section class="section-block">
+                <h2 class="section-title">Relación con compras y ventas</h2>
+                <ul class="help-list">
+                    <li>En <strong>DETALLE_COMPRAS</strong> se registran las unidades adquiridas por compra.</li>
+                    <li>En <strong>DETALLE_VENTAS</strong> se registran las unidades vendidas a los clientes.</li>
+                    <li>Los reportes de inventario por categoría se basan en <strong>STOCK</strong> y <strong>PRECIO_VENTA</strong>.</li>
+                </ul>
             </section>
         </main>
     </div>
 </div>
 <script src="/static/js/main.js"></script>
-<script src="/static/js/productos.js"></script>
 </body>
 </html>

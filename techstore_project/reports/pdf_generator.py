@@ -1,248 +1,206 @@
-from __future__ import annotations
+# reports/pdf_generator.py
+from io import BytesIO
+from datetime import datetime
+from typing import List, Dict, Any
 
-from datetime import date, datetime
-from typing import Any, Dict, Iterable, List
-
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.units import cm
-from reportlab.pdfgen import canvas
-
-
-def _nuevo_canvas(nombre_archivo: str, titulo: str) -> canvas.Canvas:
-    c = canvas.Canvas(nombre_archivo, pagesize=letter)
-    c.setTitle(titulo)
-    return c
-
-
-def _encabezado(c: canvas.Canvas, titulo: str) -> None:
-    width, height = letter
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(2 * cm, height - 2 * cm, titulo)
-    c.setFont("Helvetica", 9)
-    c.drawString(2 * cm, height - 2.5 * cm, datetime.now().strftime("%Y-%m-%d %H:%M"))
-    c.line(2 * cm, height - 2.7 * cm, width - 2 * cm, height - 2.7 * cm)
+from reportlab.lib.pagesizes import LETTER
+from reportlab.lib import colors
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+)
+from reportlab.lib.styles import getSampleStyleSheet
 
 
-def _pie_pagina(c: canvas.Canvas, numero_pagina: int) -> None:
-    width, _ = letter
-    c.setFont("Helvetica", 8)
-    c.drawRightString(width - 2 * cm, 1.5 * cm, f"Página {numero_pagina}")
-
-
-# ---------------------------------------------------------------------------
-# Reporte de ventas por día
-# ---------------------------------------------------------------------------
-
-def generar_reporte_ventas_pdf(
-    nombre_archivo: str,
-    resumen_ventas: Iterable[Dict[str, Any]],
-    titulo: str = "Reporte de Ventas por Día",
-) -> None:
+class PDFGenerator:
     """
-    Crea un PDF con el resumen de ventas por día.
-
-    Cada fila de resumen_ventas se espera con claves:
-      - FECHA
-      - NUM_VENTAS
-      - TOTAL_VENDIDO
+    Generador de PDFs para TechStore.
+    Se usa tanto para facturas como para reportes tabulares.
     """
-    c = _nuevo_canvas(nombre_archivo, titulo)
-    _encabezado(c, titulo)
 
-    width, height = letter
-    x_margin = 2 * cm
-    y = height - 3.5 * cm
-    row_height = 0.6 * cm
-    numero_pagina = 1
+    @staticmethod
+    def _build_doc_buffer() -> (SimpleDocTemplate, BytesIO):
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=LETTER,
+            leftMargin=40,
+            rightMargin=40,
+            topMargin=40,
+            bottomMargin=40,
+        )
+        return doc, buffer
 
-    # Encabezados de tabla
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(x_margin, y, "Fecha")
-    c.drawString(x_margin + 5 * cm, y, "Nro Ventas")
-    c.drawString(x_margin + 9 * cm, y, "Total Vendido")
-    y -= row_height
-    c.setFont("Helvetica", 10)
+    @staticmethod
+    def _styles():
+        styles = getSampleStyleSheet()
+        title = styles["Heading1"]
+        title.fontName = "Helvetica-Bold"
+        title.textColor = colors.HexColor("#1a1a4d")
 
-    for fila in resumen_ventas:
-        if y < 2.5 * cm:  # salto de página
-            _pie_pagina(c, numero_pagina)
-            c.showPage()
-            numero_pagina += 1
-            _encabezado(c, titulo)
-            y = height - 3.5 * cm
-            c.setFont("Helvetica-Bold", 10)
-            c.drawString(x_margin, y, "Fecha")
-            c.drawString(x_margin + 5 * cm, y, "Nro Ventas")
-            c.drawString(x_margin + 9 * cm, y, "Total Vendido")
-            y -= row_height
-            c.setFont("Helvetica", 10)
+        h2 = styles["Heading2"]
+        h2.fontName = "Helvetica-Bold"
+        h2.textColor = colors.HexColor("#333366")
+        h2.spaceAfter = 6
 
-        fecha = fila.get("FECHA")
-        if isinstance(fecha, (datetime, date)):
-            fecha_str = fecha.strftime("%Y-%m-%d")
-        else:
-            fecha_str = str(fecha or "")
+        normal = styles["BodyText"]
+        normal.fontName = "Helvetica"
+        normal.fontSize = 10
+        normal.leading = 13
 
-        num_ventas = int(fila.get("NUM_VENTAS") or 0)
-        total = float(fila.get("TOTAL_VENDIDO") or 0.0)
+        small = styles["BodyText"]
+        small.fontName = "Helvetica"
+        small.fontSize = 9
+        small.leading = 11
 
-        c.drawString(x_margin, y, fecha_str)
-        c.drawString(x_margin + 5 * cm, y, str(num_ventas))
-        c.drawRightString(x_margin + 12 * cm, y, f"${total:,.2f}")
-        y -= row_height
+        return {
+            "title": title,
+            "h2": h2,
+            "normal": normal,
+            "small": small,
+        }
 
-    _pie_pagina(c, numero_pagina)
-    c.save()
+    # ------------------------------------------------------------------ #
+    #  FACTURA DE VENTA
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def factura_venta(data: Dict[str, Any]) -> bytes:
+        """
+        data:
+          venta: dict con ID_VENTA, FECHA, TOTAL, ES_CREDITO
+          cliente: dict con NOMBRE_COMPLETO, DOCUMENTO
+          detalles: list[dict] con NOMBRE_PROD, CANTIDAD, PRECIO, SUBTOTAL
+        """
+        doc, buffer = PDFGenerator._build_doc_buffer()
+        styles = PDFGenerator._styles()
+        elements = []
 
+        venta = data["venta"]
+        cliente = data["cliente"]
+        detalles = data["detalles"]
 
-# ---------------------------------------------------------------------------
-# Reporte de créditos pendientes
-# ---------------------------------------------------------------------------
+        # Encabezado
+        elements.append(Paragraph("TechStore - Factura de Venta", styles["title"]))
+        elements.append(
+            Paragraph(
+                f"Fecha de generación: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+                styles["small"],
+            )
+        )
+        elements.append(Spacer(1, 12))
 
-def generar_reporte_creditos_pdf(
-    nombre_archivo: str,
-    creditos: Iterable[Dict[str, Any]],
-    titulo: str = "Reporte de Créditos Pendientes",
-) -> None:
-    """
-    Genera un PDF con la lista de créditos pendientes.
+        # Datos generales
+        elements.append(Paragraph(f"Número de venta: {venta['ID_VENTA']}", styles["h2"]))
+        elements.append(
+            Paragraph(
+                f"Fecha de la venta: {venta['FECHA'].strftime('%d/%m/%Y')}",
+                styles["normal"],
+            )
+        )
+        elements.append(
+            Paragraph(f"Tipo de venta: {'CRÉDITO' if venta['ES_CREDITO'] == 'S' else 'CONTADO'}",
+                      styles["normal"])
+        )
+        elements.append(Spacer(1, 12))
 
-    Cada dict debe tener:
-      - ID_CREDITO
-      - ID_VENTA
-      - CLIENTE
-      - SALDO_TOTAL
-      - SALDO_PENDIENTE
-      - FECHA_VENCIMIENTO
-      - ESTADO
-    """
-    c = _nuevo_canvas(nombre_archivo, titulo)
-    _encabezado(c, titulo)
+        # Datos cliente
+        elements.append(Paragraph("Datos del cliente", styles["h2"]))
+        elements.append(
+            Paragraph(f"Cliente: {cliente['NOMBRE_COMPLETO']}", styles["normal"])
+        )
+        elements.append(
+            Paragraph(f"Documento: {cliente.get('DOCUMENTO', '')}", styles["normal"])
+        )
+        elements.append(Spacer(1, 12))
 
-    width, height = letter
-    x_margin = 2 * cm
-    y = height - 3.5 * cm
-    row_height = 0.6 * cm
-    numero_pagina = 1
+        # Tabla detalle
+        elements.append(Paragraph("Detalle de productos", styles["h2"]))
 
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(x_margin, y, "Crédito")
-    c.drawString(x_margin + 2.5 * cm, y, "Venta")
-    c.drawString(x_margin + 4.8 * cm, y, "Cliente")
-    c.drawString(x_margin + 10.0 * cm, y, "Saldo Pendiente")
-    c.drawString(x_margin + 14.0 * cm, y, "Vence")
-    y -= row_height
-    c.setFont("Helvetica", 9)
+        data_table = [["Producto", "Cantidad", "Precio unitario", "Subtotal"]]
+        for d in detalles:
+            data_table.append(
+                [
+                    d["NOMBRE_PRODUCTO"],
+                    int(d["CANTIDAD"]),
+                    f"${d['PRECIO_UNITARIO']:,.0f}",
+                    f"${d['SUBTOTAL']:,.0f}",
+                ]
+            )
 
-    for fila in creditos:
-        if y < 2.5 * cm:
-            _pie_pagina(c, numero_pagina)
-            c.showPage()
-            numero_pagina += 1
-            _encabezado(c, titulo)
-            y = height - 3.5 * cm
-            c.setFont("Helvetica-Bold", 10)
-            c.drawString(x_margin, y, "Crédito")
-            c.drawString(x_margin + 2.5 * cm, y, "Venta")
-            c.drawString(x_margin + 4.8 * cm, y, "Cliente")
-            c.drawString(x_margin + 10.0 * cm, y, "Saldo Pendiente")
-            c.drawString(x_margin + 14.0 * cm, y, "Vence")
-            y -= row_height
-            c.setFont("Helvetica", 9)
+        table = Table(data_table, colWidths=[220, 70, 100, 100])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#667eea")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                ]
+            )
+        )
+        elements.append(table)
+        elements.append(Spacer(1, 12))
 
-        id_credito = fila.get("ID_CREDITO")
-        id_venta = fila.get("ID_VENTA")
-        cliente = str(fila.get("CLIENTE") or "")
-        saldo_pendiente = float(fila.get("SALDO_PENDIENTE") or 0.0)
-        fecha_venc = fila.get("FECHA_VENCIMIENTO")
-        if isinstance(fecha_venc, (datetime, date)):
-            fecha_venc_str = fecha_venc.strftime("%Y-%m-%d")
-        else:
-            fecha_venc_str = str(fecha_venc or "")
+        elements.append(
+            Paragraph(f"TOTAL: ${venta['TOTAL']:,.0f}", styles["h2"])
+        )
 
-        c.drawString(x_margin, y, str(id_credito))
-        c.drawString(x_margin + 2.5 * cm, y, str(id_venta))
-        c.drawString(x_margin + 4.8 * cm, y, cliente[:30])
-        c.drawRightString(x_margin + 13.5 * cm, y, f"${saldo_pendiente:,.2f}")
-        c.drawString(x_margin + 14.0 * cm, y, fecha_venc_str)
-        y -= row_height
+        doc.build(elements)
+        return buffer.getvalue()
 
-    _pie_pagina(c, numero_pagina)
-    c.save()
+    # ------------------------------------------------------------------ #
+    #  REPORTES TABULARES GENÉRICOS
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def reporte_tabular(
+        titulo: str,
+        subtitulo: str,
+        columnas: List[str],
+        filas: List[List[Any]],
+    ) -> bytes:
+        """
+        Genera un PDF con un título, subtítulo y tabla.
+        """
+        doc, buffer = PDFGenerator._build_doc_buffer()
+        styles = PDFGenerator._styles()
+        elements = []
 
+        elements.append(Paragraph(titulo, styles["title"]))
+        elements.append(
+            Paragraph(
+                f"{subtitulo}<br/>Generado el {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+                styles["small"],
+            )
+        )
+        elements.append(Spacer(1, 12))
 
-# ---------------------------------------------------------------------------
-# Reporte de bitácora de sesiones
-# ---------------------------------------------------------------------------
+        # Transformar filas a texto
+        table_data = [columnas]
+        for row in filas:
+            table_data.append([str(c) for c in row])
 
-def generar_reporte_bitacora_pdf(
-    nombre_archivo: str,
-    bitacora: Iterable[Dict[str, Any]],
-    titulo: str = "Reporte de Bitácora de Sesiones",
-) -> None:
-    """
-    Genera un PDF con la bitácora de inicio/cierre de sesión.
+        table = Table(table_data, repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#667eea")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                    ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                ]
+            )
+        )
 
-    Cada dict debe tener:
-      - ID_BITACORA
-      - USERNAME
-      - FECHA_LOGIN
-      - FECHA_LOGOUT
-      - IP
-      - DETALLE
-    """
-    c = _nuevo_canvas(nombre_archivo, titulo)
-    _encabezado(c, titulo)
-
-    width, height = letter
-    x_margin = 2 * cm
-    y = height - 3.5 * cm
-    row_height = 0.5 * cm
-    numero_pagina = 1
-
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(x_margin, y, "Usuario")
-    c.drawString(x_margin + 4.0 * cm, y, "Login")
-    c.drawString(x_margin + 8.0 * cm, y, "Logout")
-    c.drawString(x_margin + 12.0 * cm, y, "IP")
-    y -= row_height
-    c.setFont("Helvetica", 8)
-
-    for fila in bitacora:
-        if y < 2.5 * cm:
-            _pie_pagina(c, numero_pagina)
-            c.showPage()
-            numero_pagina += 1
-            _encabezado(c, titulo)
-            y = height - 3.5 * cm
-            c.setFont("Helvetica-Bold", 9)
-            c.drawString(x_margin, y, "Usuario")
-            c.drawString(x_margin + 4.0 * cm, y, "Login")
-            c.drawString(x_margin + 8.0 * cm, y, "Logout")
-            c.drawString(x_margin + 12.0 * cm, y, "IP")
-            y -= row_height
-            c.setFont("Helvetica", 8)
-
-        username = str(fila.get("USERNAME") or "")
-        fecha_login = fila.get("FECHA_LOGIN")
-        fecha_logout = fila.get("FECHA_LOGOUT")
-        ip = str(fila.get("IP") or "")
-
-        if isinstance(fecha_login, (datetime, date)):
-            login_str = fecha_login.strftime("%Y-%m-%d %H:%M")
-        else:
-            login_str = str(fecha_login or "")
-
-        if isinstance(fecha_logout, (datetime, date)):
-            logout_str = fecha_logout.strftime("%Y-%m-%d %H:%M")
-        else:
-            logout_str = str(fecha_logout or "")
-
-        c.drawString(x_margin, y, username[:15])
-        c.drawString(x_margin + 4.0 * cm, y, login_str)
-        c.drawString(x_margin + 8.0 * cm, y, logout_str)
-        c.drawString(x_margin + 12.0 * cm, y, ip[:15])
-        y -= row_height
-
-    _pie_pagina(c, numero_pagina)
-    c.save()
+        elements.append(table)
+        doc.build(elements)
+        return buffer.getvalue()
