@@ -1,0 +1,1 @@
+# Clase Categoria (por implementar)
